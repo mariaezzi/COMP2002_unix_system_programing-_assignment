@@ -14,6 +14,7 @@ void resetBackground();
 
 
 /*--------------------------------- MAIN OPERATIONS -----------------------------------*/
+int* getRowsAndCols(int fd); /*takes a fd, returns an int* of size 2 with rows and cols*/
 int copyFile (char* file); /*takes fd, creates a copy, return the copied fd*/
 char** loadMap(int fd, int rows, int cols); /*takes a fd, reads map contents, returns 2d array representaion*/
 int renderMap (char** map, int rows, int cols); /*takes a 2d array map, renders it out to the terminal*/

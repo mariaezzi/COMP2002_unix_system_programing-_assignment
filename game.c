@@ -1,6 +1,5 @@
 #include "game.h"
 
-
 /*function to accept char from the user*/
 char getUserMove(void) {
     struct termios old, new;

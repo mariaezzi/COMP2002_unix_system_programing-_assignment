@@ -61,6 +61,37 @@ void resetBackground() {
 
 /*--------------------------------- MAIN OPERATIONS -----------------------------------*/
 
+int* getRowsAndCols(int fd) {
+    char rows[3] = {0,0,'\0'}; 
+    char cols[3] = {0,0,'\0'};
+    char ch;     
+    int readResult;
+
+    lseek(fd, 2, SEEK_SET); /*skip state and new line*/
+
+    read(fd, &rows, 2); /*read the rows*/
+    read(fd, &ch, 1); /*skip space*/
+    read(fd, &cols, 2); /*read the cols*/
+    read(fd, &ch, 1); /*skip new line*/
+
+    /*convert the strings just read into ints*/
+    /*plus 2 to account for borders on both ends*/
+    int r = twoDigitCharToInt(rows) + 2;
+    int c = twoDigitCharToInt(cols) + 2;
+
+    int*result = malloc(2 * sizeof(int)); /*allocate memory for 2 ints*/
+    if (result == NULL) {
+        write(2, "Memory allocation failed\n", 26);
+        return NULL;
+    }
+    
+    result[0] = r;
+    result[1] = c;
+
+    return result; /*return the rows and cols as an int array*/
+
+}
+
 /*takes fd, creates a copy, return the copied fd*/
 int copyFile (char* file) {
 

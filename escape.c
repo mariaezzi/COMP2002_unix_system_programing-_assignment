@@ -16,28 +16,15 @@ int main (int argc, char* argv[]) {
         return -1;
     }
 
-    
-    /* read in rows and cols in main to make parameter passing easier*/
-    char rows[3] = {0,0,'\0'}; 
-    char cols[3] = {0,0,'\0'};
-    char ch;     
-    int readResult;
 
-    lseek(mapFile, 2, SEEK_SET); /*skip state and new line*/
+    int* res = getRowsAndCols(mapFile);
+    int rows = res[0];
+    int cols = res[1];
+    free(res); /*free the memory allocated for res*/
 
-    read(mapFile, &rows, 2); /*read the rows*/
-    read(mapFile, &ch, 1); /*skip space*/
-    read(mapFile, &cols, 2); /*read the cols*/
-    read(mapFile, &ch, 1); /*skip new line*/
-
-    /*convert the strings just read into ints*/
-    /*plus 2 to account for borders on both ends*/
-    int r = twoDigitCharToInt(rows) + 2;
-    int c = twoDigitCharToInt(cols) + 2;
-
-    char** map = loadMap(mapFile, r, c); /*also handles closing of mapFile*/
-    int renderResult = renderMap(map, r, c);
-    int freeResult = freeMap(map, r, c);
+    char** map = loadMap(mapFile, rows, cols); /*also handles closing of mapFile*/
+    int renderResult = renderMap(map, rows, cols);
+    int freeResult = freeMap(map, rows, cols);
     
     char move;
     while (1) {
