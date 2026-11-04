@@ -1,5 +1,6 @@
 #include "fileHandling.h"
 #include "game.h"
+#include "gameInfo.h"
 
 int main (int argc, char* argv[]) {
 
@@ -16,21 +17,35 @@ int main (int argc, char* argv[]) {
         return -1;
     }
 
-
+    /*get the rows and cols from the copied file*/
     int* res = getRowsAndCols(mapFile);
     int rows = res[0];
     int cols = res[1];
     free(res); /*free the memory allocated for res*/
 
-    char** map = loadMap(mapFile, rows, cols); /*also handles closing of mapFile*/
-    int renderResult = renderMap(map, rows, cols);
-    int freeResult = freeMap(map, rows, cols);
+    /*initialize empty game info*/
+    GameInfo gameInfo;
+
+    char** map = loadMap(mapFile, rows, cols, &gameInfo); 
+    renderMap(map, rows, cols);
     
     char move;
-    while (1) {
+    char s; 
+    while ( gameInfo.state == 0) {
+        write(1, "state: ", 7);
+        s = singleDigitIntToChar(gameInfo.state);
+        write(1, &s, 1);
+        write(1, "\n", 1);
         move = getUserMove(); /*get the user input*/
-        write(1, &move, 1); /*write the user input to stdout*/
-        write(1, "\n", 1); /*write a new line to stdout*/
+        movePlayer(move, map, rows, cols, &gameInfo);
+        
+        system("clear");
+        system("tput cup 0 0");
+        renderMap(map, rows, cols);
     }
-
+    
+    /*close the copy file at the very and and then return, do other clean up as well*/
+    freeMap(map, rows, cols); /*DEBUG - move to the end later, clean up also needs to be done in case of ^c*/
+    close(mapFile);
+    return 0;
 }

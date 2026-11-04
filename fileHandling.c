@@ -65,7 +65,6 @@ int* getRowsAndCols(int fd) {
     char rows[3] = {0,0,'\0'}; 
     char cols[3] = {0,0,'\0'};
     char ch;     
-    int readResult;
 
     lseek(fd, 2, SEEK_SET); /*skip state and new line*/
 
@@ -123,7 +122,7 @@ int copyFile (char* file) {
 }
 
 /*takes a fd, reads map contents, returns 2d array representaion*/
-char** loadMap(int fd, int rows, int cols) {
+char** loadMap(int fd, int rows, int cols, GameInfo* gameInfo) {
 
     char ch; /*used to read in characters from the file*/
 
@@ -137,15 +136,6 @@ char** loadMap(int fd, int rows, int cols) {
     for (i = 0; i < rows; i ++) {
         map[i] = (char*)malloc(cols * sizeof(char));
     }
-
-    /*set up symbols
-    0 - empty space - ' '
-    1 - blocked space - '#
-    2 - player - p
-    3 - goal - G
-    4 - snake - ~
-    5 - wolf - W
-    */
 
     char symbols[6] = {' ', '#', 'P', 'G', '~', 'W'};
 
@@ -162,12 +152,33 @@ char** loadMap(int fd, int rows, int cols) {
                 int symbolIndex = singleDigitCharToInt(ch); /*convert char to int and use as index for symbols array*/
                 map[r][c] = symbols[symbolIndex]; /*store corresponding symbol in the 2D array*/
                 read(fd, &ch, 1); /*skip space or newline after character*/
-            }
 
+                /*load data into game info struct*/
+                switch (map[r][c]){
+                case 'P':
+                    gameInfo->px = r;
+                    gameInfo->py = c;
+                    break;
+                case 'G' : 
+                    gameInfo->goalx = r;
+                    gameInfo->goaly = c;
+                    break;
+                case '~' : 
+                    gameInfo->snakex = r;
+                    gameInfo->snakey = c;                    
+                    break;
+                case 'W' : 
+                    gameInfo->wolfx = r;
+                    gameInfo->wolfy = c;                    
+                    break;
+                default:              
+                    break;
+                }
+            }
         }
     }
+    gameInfo->state = getState(fd);
 
-    close(fd); /*close the file descriptor after reading*/
     return map; /* placeholder for now */
 }
 

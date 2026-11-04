@@ -1,6 +1,11 @@
+#ifndef FILEHANDLING_H
+#define FILEHANDLING_H
+
 #include <unistd.h>
 #include <fcntl.h>
 #include <stdlib.h> /*for malloc and free*/
+#include "game.h"
+#include "gameInfo.h"
 
 
 /*------------------------------------- HELPERS ---------------------------------------*/
@@ -16,6 +21,8 @@ void resetBackground();
 /*--------------------------------- MAIN OPERATIONS -----------------------------------*/
 int* getRowsAndCols(int fd); /*takes a fd, returns an int* of size 2 with rows and cols*/
 int copyFile (char* file); /*takes fd, creates a copy, return the copied fd*/
-char** loadMap(int fd, int rows, int cols); /*takes a fd, reads map contents, returns 2d array representaion*/
+char** loadMap(int fd, int rows, int cols, GameInfo* gameInfo); /*takes a fd, reads map contents, returns 2d array representaion*/
 int renderMap (char** map, int rows, int cols); /*takes a 2d array map, renders it out to the terminal*/
 int freeMap (char** map, int rows, int cols);  /*takes a 2d array map, and then frees it */
+
+#endif
