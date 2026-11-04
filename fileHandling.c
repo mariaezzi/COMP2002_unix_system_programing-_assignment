@@ -144,6 +144,13 @@ char** loadMap(int fd, int rows, int cols) {
 int renderMap (char** map, int rows, int cols) {
     int r, c;
     char ch;
+
+    /*error checking*/
+    if (map == NULL) {
+        write(2, "renderMap: map is NULL\n", 24);
+        return -1;
+    }
+
     for (r = 0; r < rows; r++) {
         for (c = 0; c < cols; c++) {
             ch = map[r][c];
@@ -162,6 +169,22 @@ int renderMap (char** map, int rows, int cols) {
         write(1, "\n", 1); /*new line after each row*/
     }
 
+    return 0; /*success*/
 }
 
-//int freeMap (char** map, int rows, int cols);  /*takes a 2d array map, and then frees it */
+/*takes a 2d array map, and then frees it */
+int freeMap (char** map, int rows, int cols){
+    
+    if (map == NULL) {
+        write(2, "freeMap: map is NULL\n", 21);
+        return -1;
+    }
+
+    int i;
+    for (i = 0; i < rows; i ++) {
+        free(map[i]);
+    }
+    free(map);
+
+    return 0; /*success*/
+}

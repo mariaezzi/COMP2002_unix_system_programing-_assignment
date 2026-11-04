@@ -3,14 +3,19 @@
 #include <stdlib.h> /*DEBUG ONLY - remove later*/
 #include <stdio.h> /*DEBUG ONLY - remove later*/
 
+
+/*------------------------------------- HELPERS ---------------------------------------*/
 int stringLen(char* str); /*returns the length of a string, not including the null terminator*/
 char singleDigitIntToChar(int num); /*converts a single digit int to a char*/
 int singleDigitCharToInt(char ch); /*converts a single digit char to an int*/
 char* twoDigitIntToChar(int num); /*takes a 2 digit int, returns a char* representation of it*/
 int twoDigitCharToInt(char* str); /*takes a 2 digit char*, returns the int representation of it*/
+void setWhiteBackground();
+void resetBackground();
 
 
+/*--------------------------------- MAIN OPERATIONS -----------------------------------*/
 int copyFile (char* file); /*takes fd, creates a copy, return the copied fd*/
 char** loadMap(int fd, int rows, int cols); /*takes a fd, reads map contents, returns 2d array representaion*/
 int renderMap (char** map, int rows, int cols); /*takes a 2d array map, renders it out to the terminal*/
-//int freeMap (char** map, int rows, int cols);  /*takes a 2d array map, and then frees it */
+int freeMap (char** map, int rows, int cols);  /*takes a 2d array map, and then frees it */

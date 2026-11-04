@@ -37,6 +37,7 @@ int main (int argc, char* argv[]) {
 
     char** map = loadMap(mapFile, r, c); /*also handles closing of mapFile*/
     int renderResult = renderMap(map, r, c);
+    int freeResult = freeMap(map, r, c);
 
 
 
