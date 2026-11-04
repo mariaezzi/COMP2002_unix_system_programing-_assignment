@@ -11,7 +11,7 @@ int main (int argc, char* argv[]) {
     /*copy and validate copied fd*/
 
 
-    int mapFile = copyFile(argv[1]); 
+    int mapFile = copyFile(argv[1]); /*handles opeing and closing of orignal map.txt*/
     if (mapFile < 0) {
         write(2, "copying map.txt failed\n", 23);
         return -1;
@@ -19,26 +19,25 @@ int main (int argc, char* argv[]) {
 
     
     /* read in rows in main to make parameter passing easier*/
-    int rows, cols;
     char rows[3] = {0,0,'\0'}; 
     char cols[3] = {0,0,'\0'};
     char ch;     
     int readResult;
 
-    lseek(fd, 2, SEEK_SET); /*skip state and new line*/
+    lseek(mapFile, 2, SEEK_SET); /*skip state and new line*/
 
-    read(fd, &rows, 2); /*read the rows*/
-    read(fd, &ch, 1); /*skip space*/
-    read(fd, &cols, 2); /*read the cols*/
-    read(fd, &ch, 1); /*skip new line*/
+    read(mapFile, &rows, 2); /*read the rows*/
+    read(mapFile, &ch, 1); /*skip space*/
+    read(mapFile, &cols, 2); /*read the cols*/
+    read(mapFile, &ch, 1); /*skip new line*/
 
     /*convert the strings just read into ints*/
     /*plus one to account for borders*/
-    int rInt = twoDigitCharToInt(rows) + 2;
-    int cInt = twoDigitCharToInt(cols) + 2;
+    int r = twoDigitCharToInt(rows) + 2;
+    int c = twoDigitCharToInt(cols) + 2;
 
-    char** map = loadMap(mapFile, rInt, cInt);
-
+    char** map = loadMap(mapFile, r, c); /*also handles closing of mapFile*/
+    int renderResult = renderMap(map, r, c);
 
 
 

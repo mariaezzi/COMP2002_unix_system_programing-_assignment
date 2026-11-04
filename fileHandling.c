@@ -54,7 +54,6 @@ int twoDigitCharToInt(char* str) {
 /*--------------------------------- MAIN OPERATIONS -----------------------------------*/
 
 /*takes fd, creates a copy, return the copied fd*/
-/*DONE*/
 int copyFile (char* file) {
 
     int fd_orignal = open(file, O_RDONLY);
@@ -87,6 +86,8 @@ int copyFile (char* file) {
 /*takes a fd, reads map contents, returns 2d array representaion*/
 char** loadMap(int fd, int rows, int cols) {
 
+    char ch; /*used to read in characters from the file*/
+
     /*initialize 2d array*/
     char** map = (char**)malloc(rows * sizeof(char*));
     if (map == NULL) {
@@ -98,8 +99,7 @@ char** loadMap(int fd, int rows, int cols) {
         map[i] = (char*)malloc(cols * sizeof(char));
     }
 
-    /*set up symbols*/
-    /*
+    /*set up symbols
     0 - empty space - ' '
     1 - blocked space - '#
     2 - player - p
@@ -128,10 +128,21 @@ char** loadMap(int fd, int rows, int cols) {
         }
     }
 
-
     close(fd); /*close the file descriptor after reading*/
     return map; /* placeholder for now */
 }
 
-//int renderMap (char** map, int rows, int cols); /*takes a 2d array map, renders it out to the terminal*/
+/*takes a 2d array map, renders it out to the terminal*/
+int renderMap (char** map, int rows, int cols) {
+
+    int r, c;
+    for (r = 0; r < rows; r++) {
+        for (c = 0; c < cols; c++) {
+            printf("%c", map[r][c]);
+        }
+        printf("\n");
+    }
+
+}
+
 //int freeMap (char** map, int rows, int cols);  /*takes a 2d array map, and then frees it */
