@@ -40,8 +40,7 @@ int main (int argc, char* argv[]) {
         renderMap(map, rows, cols);
         
         move = getUserMove(); /*get the user input*/
-        movePlayer(move, map, rows, cols, &gameInfo);
-        
+        movePlayer(move, map, rows, cols, &gameInfo, mapFile);        
     }
     
     system("clear"); /*clear after game ends*/

@@ -31,7 +31,7 @@ int getState (int fd) {
 }
 
 /*helper function for movePlayer, takes the new positions and makes apropriate changes*/
-void moveP (char** map, int rows, int cols, int x, int y, GameInfo* gameInfo) {
+void moveP (char** map, int rows, int cols, int x, int y, GameInfo* gameInfo, int fd) {
         /* check if x and y are out of index*/
         if (x >= 0 && x < rows && y >= 0 && y < cols ) {
 
@@ -64,10 +64,13 @@ void moveP (char** map, int rows, int cols, int x, int y, GameInfo* gameInfo) {
 
             } 
         }
+
+        /*once move is made, and array and gameinfo has been updated, then update the file*/
+        updateFile(fd, map, rows, cols, gameInfo);
 }
 
 /*simple decides the coordinate of the move, and also if the move should be ignored or not*/
-void movePlayer(char move, char** map, int rows, int cols, GameInfo* gameInfo) {
+void movePlayer(char move, char** map, int rows, int cols, GameInfo* gameInfo, int fd) {
     int x = -1;
     int y = -1;
     
@@ -78,7 +81,7 @@ void movePlayer(char move, char** map, int rows, int cols, GameInfo* gameInfo) {
             y = gameInfo->py;
 
             /*call the helper function*/
-            moveP (map, rows, cols, x, y, gameInfo);          
+            moveP (map, rows, cols, x, y, gameInfo, fd);          
             break;
         case 's':
             /*DOWN*/
@@ -86,7 +89,7 @@ void movePlayer(char move, char** map, int rows, int cols, GameInfo* gameInfo) {
             y = gameInfo->py;    
 
             /*call the helper function*/
-            moveP (map, rows, cols, x, y, gameInfo);
+            moveP (map, rows, cols, x, y, gameInfo, fd);
             break;
         case 'a':
             /*LEFT*/
@@ -94,7 +97,7 @@ void movePlayer(char move, char** map, int rows, int cols, GameInfo* gameInfo) {
             y = gameInfo->py-1;      
 
             /*call the helper function*/
-            moveP (map, rows, cols, x, y, gameInfo);  
+            moveP (map, rows, cols, x, y, gameInfo, fd);  
             break;
         case 'd':
             /*RIGHT*/
@@ -102,7 +105,7 @@ void movePlayer(char move, char** map, int rows, int cols, GameInfo* gameInfo) {
             y = gameInfo->py+1;         
 
             /*call the helper function*/
-            moveP (map, rows, cols, x, y, gameInfo);  
+            moveP (map, rows, cols, x, y, gameInfo, fd);  
             break;
         default : 
             break;
@@ -114,6 +117,73 @@ void movePlayer(char move, char** map, int rows, int cols, GameInfo* gameInfo) {
 /*writes contents of array to fd*/
 /*updtaes the file, and state*/
 int updateFile (int fd, char** map, int rows, int cols, GameInfo* gameInfo) {
-    return 0;
+    if (fd < 0 || map == NULL) {
+        write(2, "updateFile : invalid Fd or 2d array\n", 36 );
+        return -1;
+    }
+
+    lseek(fd, 0, SEEK_SET);
+
+    /*1 - write the current state of the game*/
+    int s = gameInfo->state;
+    char state = singleDigitIntToChar(s);
+    write(fd, &state, 1);
+    write(fd, "\n", 1);
+
+    /*2 - write the rows and cols*/
+    /*minus 2 to un account for the borders*/
+    char* row = twoDigitIntToChar(rows-2);
+    char* col = twoDigitIntToChar(cols-2);
+    write(fd, row, 2);
+    write(fd, " ", 1);
+    write(fd, col, 2);
+    free(row);
+    free(col);
+
+    /*3 - write the actual matrix using nested loop*/
+    int r, c;
+    char ch;
+    for (r = 0; r < rows; r++) {
+        
+        /*ignore the border*/
+        for (c = 0; c < cols; c++) {            
+            if (r == 0 || r == rows-1 || c == 0 || c == cols - 1) {
+                continue;
+            }  
+
+            switch (map[r][c]) {
+                case ' ': 
+                    ch = '0';
+                    break; 
+                case '#': 
+                    ch = '1';
+                    break; 
+                case 'P': 
+                    ch = '2';
+                    break; 
+                case 'G': 
+                    ch = '3';
+                    break; 
+                case '~': 
+                    ch = '4';
+                    break;
+                case 'W': 
+                    ch = '5';
+                    break;
+            }
+            write(fd, &ch, 1);
+
+            /*do not print a space after the last char*/
+            if (c == cols -1) 
+                break;
+            
+            write(fd, " ", 1);
+        }
+        write(fd, "\n", 1);
+    }
+
+    return 0; /*success*/
+
 }
+
 
