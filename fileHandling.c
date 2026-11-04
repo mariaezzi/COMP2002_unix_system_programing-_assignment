@@ -51,6 +51,14 @@ int twoDigitCharToInt(char* str) {
     return res;
 }
 
+void setWhiteBackground() {
+    write(1, "\033[47m", 5); /* ANSI escape code for white background */
+}
+
+void resetBackground() {
+    write(1, "\033[0m", 4); /* ANSI escape code to reset background */
+}
+
 /*--------------------------------- MAIN OPERATIONS -----------------------------------*/
 
 /*takes fd, creates a copy, return the copied fd*/
@@ -134,13 +142,24 @@ char** loadMap(int fd, int rows, int cols) {
 
 /*takes a 2d array map, renders it out to the terminal*/
 int renderMap (char** map, int rows, int cols) {
-
     int r, c;
+    char ch;
     for (r = 0; r < rows; r++) {
         for (c = 0; c < cols; c++) {
-            printf("%c", map[r][c]);
+            ch = map[r][c];
+            
+            /*set white background for #*/
+            if (ch == '#') {
+                setWhiteBackground();
+                write(1, " ", 1);
+                resetBackground(); 
+            }
+            /*other wise, just simply print the char*/
+            else {
+                write(1, &ch, 1);
+            }
         }
-        printf("\n");
+        write(1, "\n", 1); /*new line after each row*/
     }
 
 }

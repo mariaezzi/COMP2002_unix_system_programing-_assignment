@@ -3,14 +3,13 @@
 
 int main (int argc, char* argv[]) {
 
+    /*validate command line input*/
     if (argc != 2) {
         write(2, "Usage: ./escape <map.txt>\n", 26);
         return 1;
     }
 
     /*copy and validate copied fd*/
-
-
     int mapFile = copyFile(argv[1]); /*handles opeing and closing of orignal map.txt*/
     if (mapFile < 0) {
         write(2, "copying map.txt failed\n", 23);
@@ -18,7 +17,7 @@ int main (int argc, char* argv[]) {
     }
 
     
-    /* read in rows in main to make parameter passing easier*/
+    /* read in rows and cols in main to make parameter passing easier*/
     char rows[3] = {0,0,'\0'}; 
     char cols[3] = {0,0,'\0'};
     char ch;     
