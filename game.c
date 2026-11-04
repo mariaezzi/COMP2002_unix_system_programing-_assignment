@@ -35,6 +35,8 @@ void moveP (char** map, int rows, int cols, int x, int y, GameInfo* gameInfo) {
         /* check if x and y are out of index*/
         if (x >= 0 && x < rows && y >= 0 && y < cols ) {
 
+            /*might remove the 2 lose conditions later, idk tho*/
+
             if (map[x][y] == '~') /*overlappiing with snake? LOSE */ 
                 gameInfo->state = 2;  /*incase player is dumb and walks right into snake*/
 
@@ -65,7 +67,7 @@ void moveP (char** map, int rows, int cols, int x, int y, GameInfo* gameInfo) {
 }
 
 /*simple decides the coordinate of the move, and also if the move should be ignored or not*/
-int movePlayer(char move, char** map, int rows, int cols, GameInfo* gameInfo) {
+void movePlayer(char move, char** map, int rows, int cols, GameInfo* gameInfo) {
     int x = -1;
     int y = -1;
     
@@ -106,13 +108,12 @@ int movePlayer(char move, char** map, int rows, int cols, GameInfo* gameInfo) {
             break;
         }
 
-    
 }
 
-// /*takes a map array, new state, and open fd*/
-// /*writes contents of array to fd*/
-// /*updtaes the file, and state*/
-// int updateFile () {
-//     return 0;
-// }
+/*takes a map array, new state, and open fd*/
+/*writes contents of array to fd*/
+/*updtaes the file, and state*/
+int updateFile (int fd, char** map, int rows, int cols, GameInfo* gameInfo) {
+    return 0;
+}
 

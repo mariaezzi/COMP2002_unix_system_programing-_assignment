@@ -1,7 +1,7 @@
 CC = gcc
 #CFLAGS = -Wall -Wextra -ansi -pedantic -g
 CFLAGS = -g
-OBJ = escape.o fileHandling.o game.o
+OBJ = escape.o fileHandling.o game.o newSleep.o
 EXEC = escape
 
 $(EXEC) : $(OBJ)
@@ -15,6 +15,9 @@ fileHandling.o : fileHandling.c fileHandling.h
 
 game.o : game.c game.h
 	$(CC) $(CFLAGS) -c game.c
-	
+
+newSleep.o : newSleep.c newSleep.h
+	$(CC) $(CFLAGS) -c newSleep.c
+
 clean :
 	rm -f $(OBJ) $(EXEC) state.txt
