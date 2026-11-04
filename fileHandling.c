@@ -169,6 +169,11 @@ int renderMap (char** map, int rows, int cols) {
         write(1, "\n", 1); /*new line after each row*/
     }
 
+    write(1, "Press w to move UP\n", 19);
+    write(1, "Press s to move DOWN\n", 21);
+    write(1, "Press a to move LEFT\n", 21);
+    write(1, "Press d to move RIGHT\n", 22);
+
     return 0; /*success*/
 }
 

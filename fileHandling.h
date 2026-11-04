@@ -1,7 +1,6 @@
 #include <unistd.h>
 #include <fcntl.h>
-#include <stdlib.h> /*DEBUG ONLY - remove later*/
-#include <stdio.h> /*DEBUG ONLY - remove later*/
+#include <stdlib.h> /*for malloc and free*/
 
 
 /*------------------------------------- HELPERS ---------------------------------------*/

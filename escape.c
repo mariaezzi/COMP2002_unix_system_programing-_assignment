@@ -1,5 +1,5 @@
-#include "stdio.h" /*DEBUG - remove later*/
 #include "fileHandling.h"
+#include "game.h"
 
 int main (int argc, char* argv[]) {
 
@@ -31,14 +31,19 @@ int main (int argc, char* argv[]) {
     read(mapFile, &ch, 1); /*skip new line*/
 
     /*convert the strings just read into ints*/
-    /*plus one to account for borders*/
+    /*plus 2 to account for borders on both ends*/
     int r = twoDigitCharToInt(rows) + 2;
     int c = twoDigitCharToInt(cols) + 2;
 
     char** map = loadMap(mapFile, r, c); /*also handles closing of mapFile*/
     int renderResult = renderMap(map, r, c);
     int freeResult = freeMap(map, r, c);
-
-
+    
+    char move;
+    while (1) {
+        move = getUserMove(); /*get the user input*/
+        write(1, &move, 1); /*write the user input to stdout*/
+        write(1, "\n", 1); /*write a new line to stdout*/
+    }
 
 }
