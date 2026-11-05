@@ -26,6 +26,14 @@ void moveS (char** map, int rows, int cols, int x, int y, GameInfo* gameInfo, in
 /*helper function for moveS*/
 void moveSnake (char** map, int rows, int cols, GameInfo* gameInfo, int fd);
 
+/*takes new x and y coordinates for Wolf, and updtaes relevant info if valid move*/
+void moveW (char** map, int rows, int cols, int x, int y, GameInfo* gameInfo, int fd);
+
+/*move randomly one step in any availabe 4 directions, move every 1 sec*/
+/*gets the exact new coordinates, then passes to helper that actually makes the move*/
+void moveWolf (char** map, int rows, int cols, GameInfo* gameInfo, int fd);
+
+
 /*updtaes the copy file  based off of map array, and gameInfo  */
 int updateFile (int fd, char** map, int rows, int cols, GameInfo* gameInfo);
 

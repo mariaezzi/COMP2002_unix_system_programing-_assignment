@@ -45,7 +45,7 @@ int main (int argc, char* argv[]) {
         movePlayer(move, map, rows, cols, &gameInfo, mapFile); 
         /*for now, each time player makes a Valid move, we move both the wolf and snake as well*/
         moveSnake(map, rows, cols, &gameInfo, mapFile);
-        // moveWolf()
+        moveWolf(map, rows, cols, &gameInfo, mapFile);
     }
     
     system("clear"); /*clear after game ends*/

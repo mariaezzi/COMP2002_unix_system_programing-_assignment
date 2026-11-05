@@ -171,10 +171,65 @@ void moveSnake (char** map, int rows, int cols, GameInfo* gameInfo, int fd) {
     moveS(map, rows,cols, x, y, gameInfo, fd);
 }
 
-// /*move randomly one step in any availabe 4 directions, move every 1 sec*/
-// void moveWolf () {
+/*takes new x and y coordinates for Wolf, and updtaes relevant info if valid move*/
+void moveW (char** map, int rows, int cols, int x, int y, GameInfo* gameInfo, int fd) {
+    /*check if player has lost*/
+    if (map[x][y] == 'P') /*overlappiing with P? LOSE */ 
+        gameInfo->state = 2;  
+    
+    /*clear old spot of W*/
+    map[gameInfo->wolfx][gameInfo->wolfy] = ' ';
 
-// }
+    /*update the ~ both in struct AND map*/
+    gameInfo->wolfx = x;
+    gameInfo->wolfy = y;
+
+    map[x][y] = 'W';
+    
+    /*once move is made, and array and gameinfo has been updated, then update the file*/
+    updateFile(fd, map, rows, cols, gameInfo);    
+
+}
+
+
+/*move randomly one step in any availabe 4 directions, move every 1 sec*/
+/*gets the exact new coordinates, then passes to helper that actually makes the move*/
+void moveWolf (char** map, int rows, int cols, GameInfo* gameInfo, int fd) {
+    int x = -1;
+    int y = -1;
+    
+    /*get the current coordinates of wolf*/
+    int wX = gameInfo->wolfx;
+    int wY = gameInfo->wolfy;
+
+    /*array of valid moves - indexes 0 - 7 (make array of8 moves, then choose a random index )*/
+    /*2d array of ints , 8 by 2 matrix of cooridiantes */
+    int moves[4][2] = {{wX-1, wY}, {wX, wY+1}, {wX+1, wY}, {wX, wY-1}};
+
+    /*now choose a randome index (0 to 7)*/
+    int validMove = 0;
+    int index;
+    int move[2]; 
+    while (!validMove) {
+        index = randomUCP(0, 3);
+        x = moves[index][0];
+        y = moves[index][1]; 
+        /* flip the flag if a valid move was selected and exit while loop*/
+        /* check if x and y are out of index*/
+        /*also check if we're in any invalid area */
+        if (x >= 0 && x < rows && y >= 0 && y < cols) {
+            /*checks for * # G S*/  
+            if (map[x][y] != '*' && map[x][y] != '#' && map[x][y] != 'G' && map[x][y] != '~' ) {
+                move[0] = x;
+                move[1] = y;
+                validMove = 1;
+            }
+        }
+    }
+
+    moveW(map, rows,cols, x, y, gameInfo, fd);
+
+}
 
 /*takes a map array, new state, and open fd*/
 /*writes contents of array to fd*/
