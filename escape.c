@@ -3,8 +3,10 @@
 #include "gameInfo.h"
 #include "newSleep.h"
 
-
 int main (int argc, char* argv[]) {
+
+    /*set the random seed*/
+    initRandom();
 
     /*validate command line input*/
     if (argc != 2) {
@@ -40,7 +42,10 @@ int main (int argc, char* argv[]) {
         renderMap(map, rows, cols);
         
         move = getUserMove(); /*get the user input*/
-        movePlayer(move, map, rows, cols, &gameInfo, mapFile);        
+        movePlayer(move, map, rows, cols, &gameInfo, mapFile); 
+        /*for now, each time player makes a Valid move, we move both the wolf and snake as well*/
+        moveSnake(map, rows, cols, &gameInfo, mapFile);
+        // moveWolf()
     }
     
     system("clear"); /*clear after game ends*/
