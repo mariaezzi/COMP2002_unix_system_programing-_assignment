@@ -8,8 +8,6 @@
 #include<sys/types.h>
 #include<sys/file.h>
 
-/* TODO - remove instances of system() -> this is a lib call, use sys call equivalant*/
-
 int main (int argc, char* argv[]) {
 
     /*set the random seed*/
@@ -37,16 +35,28 @@ int main (int argc, char* argv[]) {
     /*initialize empty game info*/
     GameInfo gameInfo;
 
-    char** map = loadMap(mapFile, rows, cols, &gameInfo); 
+    /*initialize 2d array*/
+    char** map = (char**)malloc(rows * sizeof(char*));
+    if (map == NULL) {
+        write(2, "Map Memory allocation failed\n", 29);
+        return -1;
+    }
+    int i;
+    for (i = 0; i < rows; i ++) {
+        map[i] = (char*)malloc(cols * sizeof(char));
+    }
+
+    /*load gama data into array and struct*/
+    loadMap(map , mapFile, rows, cols, &gameInfo); 
 
 
     /*------------------ MAIN GAME LOOP ----------------------------*/
 
     char move;
-    system("clear"); /*clear b4 game starts*/
+    clear_terminal();
     while ( getState(mapFile) == 0) {
 
-        system("tput cup 0 0"); 
+        clear_terminal();
         renderMap(map, rows, cols);
         
         move = getUserMove(); /*get the user input*/
@@ -57,10 +67,8 @@ int main (int argc, char* argv[]) {
         moveWolf(map, rows, cols, &gameInfo, mapFile);
     }
     
-    system("clear"); /*clear after game ends*/
-    system("tput cup 0 0");
+    clear_terminal();
     renderMap(map, rows, cols);
-    
     newSleep(0.25); /*make printing the result smoother*/
 
     if (gameInfo.state == 1) 

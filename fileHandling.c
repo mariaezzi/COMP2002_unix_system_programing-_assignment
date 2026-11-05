@@ -59,6 +59,12 @@ void resetBackground() {
     write(1, "\033[0m", 4); /* ANSI escape code to reset background */
 }
 
+void clear_terminal(void) {
+    // \033[2J clears the entire screen
+    // \033[H moves the cursor back to the top-left corner (home)
+    write(STDOUT_FILENO, "\033[2J\033[H", 7);
+}
+
 /*--------------------------------- MAIN OPERATIONS -----------------------------------*/
 
 int* getRowsAndCols(int fd) {
@@ -122,20 +128,9 @@ int copyFile (char* file) {
 }
 
 /*takes a fd, reads map contents, returns 2d array representaion*/
-char** loadMap(int fd, int rows, int cols, GameInfo* gameInfo) {
+void loadMap(char** map, int fd, int rows, int cols, GameInfo* gameInfo) {
 
     char ch; /*used to read in characters from the file*/
-
-    /*initialize 2d array*/
-    char** map = (char**)malloc(rows * sizeof(char*));
-    if (map == NULL) {
-        write(2, "Map Memory allocation failed\n", 29);
-        return NULL;
-    }
-    int i;
-    for (i = 0; i < rows; i ++) {
-        map[i] = (char*)malloc(cols * sizeof(char));
-    }
 
     char symbols[6] = {' ', '#', 'P', 'G', '~', 'W'};
 
@@ -179,7 +174,6 @@ char** loadMap(int fd, int rows, int cols, GameInfo* gameInfo) {
     }
     gameInfo->state = getState(fd);
 
-    return map; /* placeholder for now */
 }
 
 /*takes a 2d array map, renders it out to the terminal*/

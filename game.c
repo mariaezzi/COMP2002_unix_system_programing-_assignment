@@ -119,7 +119,8 @@ int updateFile (int fd, char** map, int rows, int cols, GameInfo* gameInfo) {
 
 /*helper function for movePlayer, takes the new positions and makes apropriate changes*/
 void moveP (char** map, int rows, int cols, int x, int y, GameInfo* gameInfo, int fd) {
-    /* check if x and y are out of index*/
+    
+    /* check if x and y are within matrix*/
     if (x >= 0 && x < rows && y >= 0 && y < cols ) {
 
         /*might remove the 2 lose conditions later, idk tho*/
@@ -150,10 +151,10 @@ void moveP (char** map, int rows, int cols, int x, int y, GameInfo* gameInfo, in
             }
 
         } 
+        /*once move is made, and array and gameinfo has been updated, then update the file*/
+        updateFile(fd, map, rows, cols, gameInfo);
     }
 
-    /*once move is made, and array and gameinfo has been updated, then update the file*/
-    updateFile(fd, map, rows, cols, gameInfo);
 }
 
 /*takes new x and y coordinates for snake, and updtaes relevant info if valid move*/
