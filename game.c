@@ -138,6 +138,7 @@ void moveS (char** map, int rows, int cols, int x, int y, GameInfo* gameInfo, in
 void moveSnake (char** map, int rows, int cols, GameInfo* gameInfo, int fd) {
     int x = -1;
     int y = -1;
+    int validMove = 0; /*keep track of where and when a valid move is selected*/
     
     /*get the current coordinates of snake*/
     int sX = gameInfo->snakex;
@@ -147,8 +148,18 @@ void moveSnake (char** map, int rows, int cols, GameInfo* gameInfo, int fd) {
     /*2d array of ints , 8 by 2 matrix of cooridiantes */
     int moves[8][2] = {{sX-1, sY-1}, {sX-1, sY}, {sX-1, sY+1}, {sX, sY+1}, {sX+1, sY+1}, {sX+1, sY}, {sX+1, sY-1}, {sX, sY-1}};
 
+    /*attack check, if any of the 8 valid moves goes to the player, then go there*/
+    int r, c;
+    for (r = 0; r < 8; r++) {
+        if (moves[r][0] == gameInfo->px && moves[r][1] == gameInfo->py) {
+            x = moves[r][0];
+            y = moves[r][1];
+            validMove = 1;
+        }
+    }
+
+    /* if attack check does not select a valid move, then the while loop is entered*/
     /*now choose a randome index (0 to 7)*/
-    int validMove = 0;
     int index;
     int move[2]; 
     while (!validMove) {
@@ -191,23 +202,33 @@ void moveW (char** map, int rows, int cols, int x, int y, GameInfo* gameInfo, in
 
 }
 
-
 /*move randomly one step in any availabe 4 directions, move every 1 sec*/
 /*gets the exact new coordinates, then passes to helper that actually makes the move*/
 void moveWolf (char** map, int rows, int cols, GameInfo* gameInfo, int fd) {
     int x = -1;
     int y = -1;
+    int validMove = 0; /*keep track of whertehr or not a valid move has been selected*/
     
     /*get the current coordinates of wolf*/
     int wX = gameInfo->wolfx;
     int wY = gameInfo->wolfy;
 
-    /*array of valid moves - indexes 0 - 7 (make array of8 moves, then choose a random index )*/
+    /*array of valid moves - indexes 0 - 7 (make array of 8 moves, then choose a random index )*/
     /*2d array of ints , 8 by 2 matrix of cooridiantes */
     int moves[4][2] = {{wX-1, wY}, {wX, wY+1}, {wX+1, wY}, {wX, wY-1}};
 
+    /*attack check, if any of the 4 valid moves goes to the player, then go there*/
+    int r, c;
+    for (r = 0; r < 4; r++) {
+        if (moves[r][0] == gameInfo->px && moves[r][1] == gameInfo->py) {
+            x = moves[r][0];
+            y = moves[r][1];
+            validMove = 1;
+        }
+    }
+
     /*now choose a randome index (0 to 7)*/
-    int validMove = 0;
+    /*while loop will never be entered if the precious attack check returns a valid move*/
     int index;
     int move[2]; 
     while (!validMove) {
@@ -220,8 +241,6 @@ void moveWolf (char** map, int rows, int cols, GameInfo* gameInfo, int fd) {
         if (x >= 0 && x < rows && y >= 0 && y < cols) {
             /*checks for * # G S*/  
             if (map[x][y] != '*' && map[x][y] != '#' && map[x][y] != 'G' && map[x][y] != '~' ) {
-                move[0] = x;
-                move[1] = y;
                 validMove = 1;
             }
         }
