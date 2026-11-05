@@ -21,7 +21,7 @@ char getUserMove(void) {
     return move;
 }
 
-/*takes a fd, returns the state of the game*/
+/*takes the fd of copied map file, returns the current state of the game*/
 int getState (int fd) {
     char state; 
     lseek(fd, 0, SEEK_SET); /*reset the file pointer to the start of the file*/
@@ -172,8 +172,6 @@ void moveSnake (char** map, int rows, int cols, GameInfo* gameInfo, int fd) {
         if (x >= 0 && x < rows && y >= 0 && y < cols) {
             /*checks for * # G W*/  
             if (map[x][y] != '*' && map[x][y] != '#' && map[x][y] != 'G' && map[x][y] != 'W' ) {
-                move[0] = x;
-                move[1] = y;
                 validMove = 1;
             }
         }
@@ -245,9 +243,7 @@ void moveWolf (char** map, int rows, int cols, GameInfo* gameInfo, int fd) {
             }
         }
     }
-
     moveW(map, rows,cols, x, y, gameInfo, fd);
-
 }
 
 /*takes a map array, new state, and open fd*/
@@ -327,5 +323,3 @@ int updateFile (int fd, char** map, int rows, int cols, GameInfo* gameInfo) {
     return 0; /*success*/
 
 }
-
-

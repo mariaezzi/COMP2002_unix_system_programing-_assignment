@@ -10,8 +10,11 @@
 
 #define STDIN_FILENO 0
 
-char getUserMove(void); /*function to accept char from the user*/
-int getState (int fd); /*takes a fd, returns the state of the game*/
+/*function to accept char from the user*/
+char getUserMove(void); 
+
+/*takes the fd of copied map file, returns the current state of the game*/
+int getState (int fd); 
 
 /*helper function for movePlayer, takes the new positions and makes apropriate changes*/
 void moveP (char** map, int rows, int cols, int x, int y, GameInfo* gameInfo, int fd);
