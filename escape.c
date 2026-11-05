@@ -8,6 +8,10 @@
 #include<sys/types.h>
 #include<sys/file.h>
 
+/*initialize data needed for each process*/
+char** initializeProcess(int fd, int rows, int cols, GameInfo* gameInfo);
+
+
 int main (int argc, char* argv[]) {
 
     /*set the random seed*/
@@ -31,54 +35,166 @@ int main (int argc, char* argv[]) {
     int rows = res[0];
     int cols = res[1];
     free(res); /*free the memory allocated for res*/
+    close(mapFile); /*job done, copy created, close the fd, since every proccess gets its own fd regardless*/
 
-    /*initialize empty game info*/
-    GameInfo gameInfo;
 
+
+
+    /* ============================ MULTI PROCCESS IMPLIMENTATION ============================ */
+
+    int playerFd; /*for parent*/
+    int pid = fork(); /*parent and first child*/
+    
+    /*parent - my poor player - give own copy (array and struct) and start moving*/
+    if (pid > 0) {
+
+        int pid_fork2 = fork();
+
+        /*child 3 - my witty wolf - give own copy (array and struct) and start moving every 1 sec*/
+        if (pid_fork2 == 0) {
+            /*allocate mem, load file data and struct*/
+            int wolfFd = open("state.txt", O_RDWR);
+            GameInfo gameInfo;
+            char** map = initializeProcess(wolfFd, rows, cols, &gameInfo);
+            
+            clear_terminal();
+            renderMap(map, rows, cols);
+            
+            while(1) {
+                newSleep(1); /*wait 1 secs every move*/
+                flock(wolfFd, LOCK_EX); /*lock for other processes*/
+                
+                loadMap(map, wolfFd, rows, cols, &gameInfo);
+                if (getState(wolfFd) != 0) {
+                    flock(wolfFd, LOCK_UN); /* release for other processes */
+                    break; /*exit the while loop*/
+                }
+                else {
+                    /*make move and update*/
+                    clear_terminal();
+                    moveWolf(map, rows, cols, &gameInfo, wolfFd);
+                    renderMap(map, rows, cols);
+                    updateFile(wolfFd, map, rows, cols, &gameInfo);
+                    
+                    flock(wolfFd, LOCK_UN); /* release for other processes */
+
+                    /*if game is lost, dont go back into while loop again and sleep*/
+                    if (gameInfo.state != 0)
+                        break;
+                }
+            }
+            
+            freeMap(map, rows, cols);
+            close(wolfFd);
+            exit(0);
+        }
+
+
+        /*PARENT PLAYER*/
+
+        /*allocate mem, load file data and struct - for player */
+        playerFd = open("state.txt", O_RDWR);
+        GameInfo gameInfo;
+        char** map = initializeProcess(playerFd, rows, cols, &gameInfo);
+        char move;
+        // clear_terminal();
+        // renderMap(map, rows, cols);
+        while(1) {
+            move = getUserMove(); /*get the user input*/
+            flock(playerFd, LOCK_EX); /*lock for other processes*/
+            
+            loadMap(map, playerFd, rows, cols, &gameInfo);
+            if (getState(playerFd) != 0) {
+                flock(playerFd, LOCK_UN); /* release for other processes */
+                break; /*exit the while loop*/
+            }
+            else {
+                /*make move and update*/
+                int moved = movePlayer(move, map, rows, cols, &gameInfo, playerFd);
+                if (moved) {
+                    clear_terminal();
+                    renderMap(map, rows, cols);
+                    updateFile(playerFd, map, rows, cols, &gameInfo);
+                }
+
+                flock(playerFd, LOCK_UN); /* release for other processes */
+
+                /*avoid waiting for new key again if game is over*/
+                if (gameInfo.state != 0)
+                    break;
+            }
+        }
+
+        freeMap(map, rows, cols);
+    }
+
+    /*child 2 - my sneaky snake, give it its own copy (array and struct) and start moving it, every 2 secs*/
+    else if (pid == 0) { 
+        /*allocate mem, load file data and struct*/
+        int snakeFd = open("state.txt", O_RDWR);
+        GameInfo gameInfo;
+        char** map = initializeProcess(snakeFd, rows, cols, &gameInfo);
+        
+        // clear_terminal();
+        // renderMap(map, rows, cols);
+
+        while(1) {
+            newSleep(2); /*wait 1 secs every move*/
+            flock(snakeFd, LOCK_EX); /*lock for other processes*/
+            
+            loadMap(map, snakeFd, rows, cols, &gameInfo);
+            if (getState(snakeFd) != 0) {
+                flock(snakeFd, LOCK_UN); /* release for other processes */
+                break; /*exit the while loop*/
+            }
+            else {
+                /*make move and update*/
+                clear_terminal();
+                moveSnake(map, rows, cols, &gameInfo, snakeFd);
+                renderMap(map, rows, cols);
+                updateFile(snakeFd, map, rows, cols, &gameInfo);
+                
+                flock(snakeFd, LOCK_UN); /* release for other processes */
+
+                /*if game is lost, dont go back into while loop again and sleep*/
+                if (gameInfo.state != 0)
+                    break;
+            }
+        }
+
+        freeMap(map, rows, cols);
+        close(snakeFd);
+        exit(0);
+    }
+
+
+    /*wait for both child proceses to finish before checking condition*/
+    wait(NULL);
+    wait(NULL);
+
+    if (getState(playerFd) == 1) 
+        write(1, "You win!\n", 9);
+    else 
+        write(1, "HAHAHA loser\n", 13);
+
+    /*close the copy file at the very end and then */
+    close(playerFd);
+    return 0;
+}
+
+
+char** initializeProcess(int fd, int rows, int cols, GameInfo* gameInfo) {
     /*initialize 2d array*/
     char** map = (char**)malloc(rows * sizeof(char*));
     if (map == NULL) {
         write(2, "Map Memory allocation failed\n", 29);
-        return -1;
     }
     int i;
     for (i = 0; i < rows; i ++) {
         map[i] = (char*)malloc(cols * sizeof(char));
     }
-
-    /*load gama data into array and struct*/
-    loadMap(map , mapFile, rows, cols, &gameInfo); 
-
-
-    /*------------------ MAIN GAME LOOP ----------------------------*/
-
-    char move;
-    clear_terminal();
-    while ( getState(mapFile) == 0) {
-
-        clear_terminal();
-        renderMap(map, rows, cols);
-        
-        move = getUserMove(); /*get the user input*/
-        movePlayer(move, map, rows, cols, &gameInfo, mapFile); 
-        
-        /*for now, each time player makes a Valid move, we move both the wolf and snake as well*/
-        moveSnake(map, rows, cols, &gameInfo, mapFile);
-        moveWolf(map, rows, cols, &gameInfo, mapFile);
-    }
     
-    clear_terminal();
-    renderMap(map, rows, cols);
-    newSleep(0.25); /*make printing the result smoother*/
-
-    if (gameInfo.state == 1) 
-        write(1, "You win!\n", 9);
-    else 
-        write(1, "HAHAHA loser\n", 13);
-
-
-    /*close the copy file at the very end and then return, do other clean up as well*/
-    freeMap(map, rows, cols); /*DEBUG - move to the end later, clean up also needs to be done in case of ^c*/
-    close(mapFile);
-    return 0;
+    /*load gama data into array and struct*/
+    loadMap(map , fd, rows, cols, gameInfo); 
+    return map;
 }

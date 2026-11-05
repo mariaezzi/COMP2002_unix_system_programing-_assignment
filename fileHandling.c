@@ -134,6 +134,13 @@ void loadMap(char** map, int fd, int rows, int cols, GameInfo* gameInfo) {
 
     char symbols[6] = {' ', '#', 'P', 'G', '~', 'W'};
 
+    /*read the sate*/    
+    gameInfo->state = getState(fd);
+
+    /*skip the state, the rows and cols*/
+    /* state(1) + newline + 2digits + space + 2digits + newline*/
+    lseek(fd, 8, SEEK_SET); 
+
     int r, c;
     for (r = 0; r < rows; r++) {
         for (c = 0; c < cols; c++) {
@@ -172,7 +179,7 @@ void loadMap(char** map, int fd, int rows, int cols, GameInfo* gameInfo) {
             }
         }
     }
-    gameInfo->state = getState(fd);
+    
 
 }
 
@@ -229,3 +236,20 @@ int freeMap (char** map, int rows, int cols){
 
     return 0; /*success*/
 }
+
+
+/*
+Logic that breaks the game
+
+Every process still shares one file descriptor. You fork after copyFile, so all three share the same open file description. They share the same offset and the same lock, so flock won’t make anyone wait. After forking, each process (including the parent) should open("state.txt", O_RDWR) itself. The parent should close the copyFile fd once it has what it needs.
+
+The state check happens outside the lock. while (getState(mapFile) == 0) runs before the lock, and the enemies check it before sleeping, so the game can end while they’re asleep. After the sleep they would still take a turn. Restructure it so that after you lock, you read the state, and if it’s non-zero you unlock and leave the loop.
+
+Nobody refreshes from the file after locking. Each process loads its map once at the start, so the Snake never learns where the Player actually is. ADVICE steps (v) and (vi) say to re-read the file and update your array and struct after you take the lock. This also fixes a nasty side effect. updateFile writes your struct’s state back to the file, so a process holding a stale state = 0 can overwrite a “game over” written by someone else and restart the game.
+
+loadMap doesn’t seek, which breaks with fresh descriptors. It only works today because getRowsAndCols left the offset in the right place. A freshly opened fd starts at offset 0, so it would read the state line as map data. Make loadMap find the start of the matrix itself. Think about skipping past the second newline, which also copes with sizes that aren’t two digits.
+
+Invalid player moves still write and render. ADVICE NOTE 1 says to skip both for an invalid move, but still unlock. movePlayer will need to report whether anything changed. Also, the Player renders before the move, so the screen shows the old position. Render after the move.
+
+
+*/

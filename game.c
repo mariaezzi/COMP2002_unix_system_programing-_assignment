@@ -26,6 +26,7 @@ int getState (int fd) {
     char state; 
     lseek(fd, 0, SEEK_SET); /*reset the file pointer to the start of the file*/
     read(fd, &state, 1); /*read the state*/
+    lseek(fd, 0, SEEK_SET); /*reset the file pointer to the start of the file*/
 
     return singleDigitCharToInt(state); /*convert the string just read into an int and return it*/
 }
@@ -89,13 +90,12 @@ int updateFile (int fd, char** map, int rows, int cols, GameInfo* gameInfo) {
                     ch = '5';
                     break;
             }
-            write(fd, &ch, 1);
 
-            /*do not print a space after the last char*/
-            if (c == cols -1) 
-                break;
-            
-            write(fd, " ", 1);
+            if (c != 1) {
+                write(fd, " ", 1);
+            }
+
+            write(fd, &ch, 1);
         }
 
         /*do not print new line after the last row*/
@@ -118,12 +118,13 @@ int updateFile (int fd, char** map, int rows, int cols, GameInfo* gameInfo) {
 */
 
 /*helper function for movePlayer, takes the new positions and makes apropriate changes*/
-void moveP (char** map, int rows, int cols, int x, int y, GameInfo* gameInfo, int fd) {
-    
+int moveP (char** map, int rows, int cols, int x, int y, GameInfo* gameInfo, int fd) {
+    int res = 0;
+
     /* check if x and y are within matrix*/
     if (x >= 0 && x < rows && y >= 0 && y < cols ) {
 
-        /*might remove the 2 lose conditions later, idk tho*/
+        /*might remove the 2 lose conditions in multiproccess, idk tho*/
 
         if (map[x][y] == '~') /*overlappiing with snake? LOSE */ 
             gameInfo->state = 2;  /*incase player is dumb and walks right into snake*/
@@ -142,6 +143,7 @@ void moveP (char** map, int rows, int cols, int x, int y, GameInfo* gameInfo, in
             gameInfo->py = y;
 
             map[x][y] = 'P';
+            res = 1;
 
             /*once a VALID move is made, check the following*/
 
@@ -149,11 +151,10 @@ void moveP (char** map, int rows, int cols, int x, int y, GameInfo* gameInfo, in
             if (x == gameInfo->goalx && y == gameInfo->goaly) {
                 gameInfo->state = 1;
             }
-
         } 
-        /*once move is made, and array and gameinfo has been updated, then update the file*/
-        updateFile(fd, map, rows, cols, gameInfo);
     }
+
+    return res;
 
 }
 
@@ -173,8 +174,6 @@ void moveS (char** map, int rows, int cols, int x, int y, GameInfo* gameInfo, in
 
     map[x][y] = '~';
     
-    /*once move is made, and array and gameinfo has been updated, then update the file*/
-    updateFile(fd, map, rows, cols, gameInfo);
 }
 
 /*takes new x and y coordinates for Wolf, and updtaes relevant info if valid move*/
@@ -190,10 +189,7 @@ void moveW (char** map, int rows, int cols, int x, int y, GameInfo* gameInfo, in
     gameInfo->wolfx = x;
     gameInfo->wolfy = y;
 
-    map[x][y] = 'W';
-    
-    /*once move is made, and array and gameinfo has been updated, then update the file*/
-    updateFile(fd, map, rows, cols, gameInfo);    
+    map[x][y] = 'W';   
 
 }
 
@@ -201,9 +197,10 @@ void moveW (char** map, int rows, int cols, int x, int y, GameInfo* gameInfo, in
 /*~~~~~~~~~~~~~~~~~~~~~~ Returns coordinates of valid move (doesnt make changes tho) ~~~~~~~~~~~~~~~~~~~~~~*/
 
 /*simple decides the coordinate of the move, and also if the move should be ignored or not*/
-void movePlayer(char move, char** map, int rows, int cols, GameInfo* gameInfo, int fd) {
+int movePlayer(char move, char** map, int rows, int cols, GameInfo* gameInfo, int fd) {
     int x = -1;
     int y = -1;
+    int res = 0;
     
     switch (move) {
         case 'w':
@@ -212,7 +209,7 @@ void movePlayer(char move, char** map, int rows, int cols, GameInfo* gameInfo, i
             y = gameInfo->py;
 
             /*call the helper function*/
-            moveP (map, rows, cols, x, y, gameInfo, fd);          
+            res = moveP (map, rows, cols, x, y, gameInfo, fd);          
             break;
         case 's':
             /*DOWN*/
@@ -220,7 +217,7 @@ void movePlayer(char move, char** map, int rows, int cols, GameInfo* gameInfo, i
             y = gameInfo->py;    
 
             /*call the helper function*/
-            moveP (map, rows, cols, x, y, gameInfo, fd);
+            res = moveP (map, rows, cols, x, y, gameInfo, fd);
             break;
         case 'a':
             /*LEFT*/
@@ -228,7 +225,7 @@ void movePlayer(char move, char** map, int rows, int cols, GameInfo* gameInfo, i
             y = gameInfo->py-1;      
 
             /*call the helper function*/
-            moveP (map, rows, cols, x, y, gameInfo, fd);  
+            res = moveP (map, rows, cols, x, y, gameInfo, fd);  
             break;
         case 'd':
             /*RIGHT*/
@@ -236,11 +233,13 @@ void movePlayer(char move, char** map, int rows, int cols, GameInfo* gameInfo, i
             y = gameInfo->py+1;         
 
             /*call the helper function*/
-            moveP (map, rows, cols, x, y, gameInfo, fd);  
+            res = moveP (map, rows, cols, x, y, gameInfo, fd);  
             break;
         default : 
             break;
         }
+
+        return res;
 
 }
 

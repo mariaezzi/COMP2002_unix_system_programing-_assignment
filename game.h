@@ -24,7 +24,7 @@ int updateFile (int fd, char** map, int rows, int cols, GameInfo* gameInfo);
 /* ~~~~~~~~~~~~~~~ changes file and struct (critical section) ~~~~~~~~~~~~~~~*/
 
 /*helper function for movePlayer, takes the new positions and makes apropriate changes*/
-void moveP (char** map, int rows, int cols, int x, int y, GameInfo* gameInfo, int fd);
+int moveP (char** map, int rows, int cols, int x, int y, GameInfo* gameInfo, int fd);
 
 /*takes new x and y coordinates for snake, and updtaes relevant info if valid move*/
 void moveS (char** map, int rows, int cols, int x, int y, GameInfo* gameInfo, int fd);
@@ -35,7 +35,7 @@ void moveW (char** map, int rows, int cols, int x, int y, GameInfo* gameInfo, in
 /*~~~~~~~~~~~~~~~~~~~~~~ Returns coordinates of valid move (doesnt make changes tho) ~~~~~~~~~~~~~~~~~~~~~~*/
 
 /*simple decides the coordinate of the move, and also if the move should be ignored or not*/
-void movePlayer(char move, char** map, int rows, int cols, GameInfo* gameInfo, int fd);
+int movePlayer(char move, char** map, int rows, int cols, GameInfo* gameInfo, int fd);
 
 /*move randomly one step in any availabe 8 directions, move every 2.5 sec*/
 /*helper function for moveS*/
