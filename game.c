@@ -30,221 +30,6 @@ int getState (int fd) {
     return singleDigitCharToInt(state); /*convert the string just read into an int and return it*/
 }
 
-/*helper function for movePlayer, takes the new positions and makes apropriate changes*/
-void moveP (char** map, int rows, int cols, int x, int y, GameInfo* gameInfo, int fd) {
-    /* check if x and y are out of index*/
-    if (x >= 0 && x < rows && y >= 0 && y < cols ) {
-
-        /*might remove the 2 lose conditions later, idk tho*/
-
-        if (map[x][y] == '~') /*overlappiing with snake? LOSE */ 
-            gameInfo->state = 2;  /*incase player is dumb and walks right into snake*/
-
-        if (map[x][y] == 'W') /*overlappiing with wolf? LOSE */ 
-            gameInfo->state = 2;  /*incase player is dumb and walks right into wolf*/
-        
-        /*checks for * # */  
-        if (map[x][y] != '*' && map[x][y] != '#' ) {
-
-            /*clear old spot of p*/
-            map[gameInfo->px][gameInfo->py] = ' ';
-
-            /*update the p both in struct AND map*/
-            gameInfo->px = x;
-            gameInfo->py = y;
-
-            map[x][y] = 'P';
-
-            /*once a VALID move is made, check the following*/
-
-            /*check for goal*/
-            if (x == gameInfo->goalx && y == gameInfo->goaly) {
-                gameInfo->state = 1;
-            }
-
-        } 
-    }
-
-    /*once move is made, and array and gameinfo has been updated, then update the file*/
-    updateFile(fd, map, rows, cols, gameInfo);
-}
-
-/*simple decides the coordinate of the move, and also if the move should be ignored or not*/
-void movePlayer(char move, char** map, int rows, int cols, GameInfo* gameInfo, int fd) {
-    int x = -1;
-    int y = -1;
-    
-    switch (move) {
-        case 'w':
-            /*UP*/
-            x = gameInfo->px -1;
-            y = gameInfo->py;
-
-            /*call the helper function*/
-            moveP (map, rows, cols, x, y, gameInfo, fd);          
-            break;
-        case 's':
-            /*DOWN*/
-            x = gameInfo->px +1;
-            y = gameInfo->py;    
-
-            /*call the helper function*/
-            moveP (map, rows, cols, x, y, gameInfo, fd);
-            break;
-        case 'a':
-            /*LEFT*/
-            x = gameInfo->px;
-            y = gameInfo->py-1;      
-
-            /*call the helper function*/
-            moveP (map, rows, cols, x, y, gameInfo, fd);  
-            break;
-        case 'd':
-            /*RIGHT*/
-            x = gameInfo->px;
-            y = gameInfo->py+1;         
-
-            /*call the helper function*/
-            moveP (map, rows, cols, x, y, gameInfo, fd);  
-            break;
-        default : 
-            break;
-        }
-
-}
-
-/*takes new x and y coordinates for snake, and updtaes relevant info if valid move*/
-void moveS (char** map, int rows, int cols, int x, int y, GameInfo* gameInfo, int fd) {
-
-    /*check if player has lost*/
-    if (map[x][y] == 'P') /*overlappiing with P? LOSE */ 
-        gameInfo->state = 2;  
-    
-    /*clear old spot of S*/
-    map[gameInfo->snakex][gameInfo->snakey] = ' ';
-
-    /*update the ~ both in struct AND map*/
-    gameInfo->snakex = x;
-    gameInfo->snakey = y;
-
-    map[x][y] = '~';
-    
-    /*once move is made, and array and gameinfo has been updated, then update the file*/
-    updateFile(fd, map, rows, cols, gameInfo);
-}
-
-/*move randomly one step in any availabe 8 directions, move every 2.5 sec*/
-/*helper function for moveS*/
-void moveSnake (char** map, int rows, int cols, GameInfo* gameInfo, int fd) {
-    int x = -1;
-    int y = -1;
-    int validMove = 0; /*keep track of where and when a valid move is selected*/
-    
-    /*get the current coordinates of snake*/
-    int sX = gameInfo->snakex;
-    int sY = gameInfo->snakey;
-
-    /*array of valid moves - indexes 0 - 7 (make array of8 moves, then choose a random index )*/
-    /*2d array of ints , 8 by 2 matrix of cooridiantes */
-    int moves[8][2] = {{sX-1, sY-1}, {sX-1, sY}, {sX-1, sY+1}, {sX, sY+1}, {sX+1, sY+1}, {sX+1, sY}, {sX+1, sY-1}, {sX, sY-1}};
-
-    /*attack check, if any of the 8 valid moves goes to the player, then go there*/
-    int r, c;
-    for (r = 0; r < 8; r++) {
-        if (moves[r][0] == gameInfo->px && moves[r][1] == gameInfo->py) {
-            x = moves[r][0];
-            y = moves[r][1];
-            validMove = 1;
-        }
-    }
-
-    /* if attack check does not select a valid move, then the while loop is entered*/
-    /*now choose a randome index (0 to 7)*/
-    int index;
-    int move[2]; 
-    while (!validMove) {
-        index = randomUCP(0, 7);
-        x = moves[index][0];
-        y = moves[index][1]; 
-        /* flip the flag if a valid move was selected and exit while loop*/
-        /* check if x and y are out of index*/
-        /*also check if we're in any invalid area */
-        if (x >= 0 && x < rows && y >= 0 && y < cols) {
-            /*checks for * # G W*/  
-            if (map[x][y] != '*' && map[x][y] != '#' && map[x][y] != 'G' && map[x][y] != 'W' ) {
-                validMove = 1;
-            }
-        }
-    }
-
-    moveS(map, rows,cols, x, y, gameInfo, fd);
-}
-
-/*takes new x and y coordinates for Wolf, and updtaes relevant info if valid move*/
-void moveW (char** map, int rows, int cols, int x, int y, GameInfo* gameInfo, int fd) {
-    /*check if player has lost*/
-    if (map[x][y] == 'P') /*overlappiing with P? LOSE */ 
-        gameInfo->state = 2;  
-    
-    /*clear old spot of W*/
-    map[gameInfo->wolfx][gameInfo->wolfy] = ' ';
-
-    /*update the ~ both in struct AND map*/
-    gameInfo->wolfx = x;
-    gameInfo->wolfy = y;
-
-    map[x][y] = 'W';
-    
-    /*once move is made, and array and gameinfo has been updated, then update the file*/
-    updateFile(fd, map, rows, cols, gameInfo);    
-
-}
-
-/*move randomly one step in any availabe 4 directions, move every 1 sec*/
-/*gets the exact new coordinates, then passes to helper that actually makes the move*/
-void moveWolf (char** map, int rows, int cols, GameInfo* gameInfo, int fd) {
-    int x = -1;
-    int y = -1;
-    int validMove = 0; /*keep track of whertehr or not a valid move has been selected*/
-    
-    /*get the current coordinates of wolf*/
-    int wX = gameInfo->wolfx;
-    int wY = gameInfo->wolfy;
-
-    /*array of valid moves - indexes 0 - 7 (make array of 8 moves, then choose a random index )*/
-    /*2d array of ints , 8 by 2 matrix of cooridiantes */
-    int moves[4][2] = {{wX-1, wY}, {wX, wY+1}, {wX+1, wY}, {wX, wY-1}};
-
-    /*attack check, if any of the 4 valid moves goes to the player, then go there*/
-    int r, c;
-    for (r = 0; r < 4; r++) {
-        if (moves[r][0] == gameInfo->px && moves[r][1] == gameInfo->py) {
-            x = moves[r][0];
-            y = moves[r][1];
-            validMove = 1;
-        }
-    }
-
-    /*now choose a randome index (0 to 7)*/
-    /*while loop will never be entered if the precious attack check returns a valid move*/
-    int index;
-    int move[2]; 
-    while (!validMove) {
-        index = randomUCP(0, 3);
-        x = moves[index][0];
-        y = moves[index][1]; 
-        /* flip the flag if a valid move was selected and exit while loop*/
-        /* check if x and y are out of index*/
-        /*also check if we're in any invalid area */
-        if (x >= 0 && x < rows && y >= 0 && y < cols) {
-            /*checks for * # G S*/  
-            if (map[x][y] != '*' && map[x][y] != '#' && map[x][y] != 'G' && map[x][y] != '~' ) {
-                validMove = 1;
-            }
-        }
-    }
-    moveW(map, rows,cols, x, y, gameInfo, fd);
-}
 
 /*takes a map array, new state, and open fd*/
 /*writes contents of array to fd*/
@@ -322,4 +107,231 @@ int updateFile (int fd, char** map, int rows, int cols, GameInfo* gameInfo) {
 
     return 0; /*success*/
 
+}
+
+
+/* ~~~~~~~~~~~~~~~ changes file and struct (critical section) ~~~~~~~~~~~~~~~*/
+/* ~~~~~~~~~~~~~~~ only the following 3 function call updatefile 
+   ~~~~~~~~~~~~~~~ moveP moveS moveW are not called direcly in the main function 
+   ~~~~~~~~~~~~~~~ they are called in direcly through movePlayer moveSnake moveWolf
+   ~~~~~~~~~~~~~~~ regardless, these are the only 3 functions that touch state.txt
+*/
+
+/*helper function for movePlayer, takes the new positions and makes apropriate changes*/
+void moveP (char** map, int rows, int cols, int x, int y, GameInfo* gameInfo, int fd) {
+    /* check if x and y are out of index*/
+    if (x >= 0 && x < rows && y >= 0 && y < cols ) {
+
+        /*might remove the 2 lose conditions later, idk tho*/
+
+        if (map[x][y] == '~') /*overlappiing with snake? LOSE */ 
+            gameInfo->state = 2;  /*incase player is dumb and walks right into snake*/
+
+        if (map[x][y] == 'W') /*overlappiing with wolf? LOSE */ 
+            gameInfo->state = 2;  /*incase player is dumb and walks right into wolf*/
+        
+        /*checks for * # */  
+        if (map[x][y] != '*' && map[x][y] != '#' ) {
+
+            /*clear old spot of p*/
+            map[gameInfo->px][gameInfo->py] = ' ';
+
+            /*update the p both in struct AND map*/
+            gameInfo->px = x;
+            gameInfo->py = y;
+
+            map[x][y] = 'P';
+
+            /*once a VALID move is made, check the following*/
+
+            /*check for goal*/
+            if (x == gameInfo->goalx && y == gameInfo->goaly) {
+                gameInfo->state = 1;
+            }
+
+        } 
+    }
+
+    /*once move is made, and array and gameinfo has been updated, then update the file*/
+    updateFile(fd, map, rows, cols, gameInfo);
+}
+
+/*takes new x and y coordinates for snake, and updtaes relevant info if valid move*/
+void moveS (char** map, int rows, int cols, int x, int y, GameInfo* gameInfo, int fd) {
+
+    /*check if player has lost*/
+    if (map[x][y] == 'P') /*overlappiing with P? LOSE */ 
+        gameInfo->state = 2;  
+    
+    /*clear old spot of S*/
+    map[gameInfo->snakex][gameInfo->snakey] = ' ';
+
+    /*update the ~ both in struct AND map*/
+    gameInfo->snakex = x;
+    gameInfo->snakey = y;
+
+    map[x][y] = '~';
+    
+    /*once move is made, and array and gameinfo has been updated, then update the file*/
+    updateFile(fd, map, rows, cols, gameInfo);
+}
+
+/*takes new x and y coordinates for Wolf, and updtaes relevant info if valid move*/
+void moveW (char** map, int rows, int cols, int x, int y, GameInfo* gameInfo, int fd) {
+    /*check if player has lost*/
+    if (map[x][y] == 'P') /*overlappiing with P? LOSE */ 
+        gameInfo->state = 2;  
+    
+    /*clear old spot of W*/
+    map[gameInfo->wolfx][gameInfo->wolfy] = ' ';
+
+    /*update the ~ both in struct AND map*/
+    gameInfo->wolfx = x;
+    gameInfo->wolfy = y;
+
+    map[x][y] = 'W';
+    
+    /*once move is made, and array and gameinfo has been updated, then update the file*/
+    updateFile(fd, map, rows, cols, gameInfo);    
+
+}
+
+
+/*~~~~~~~~~~~~~~~~~~~~~~ Returns coordinates of valid move (doesnt make changes tho) ~~~~~~~~~~~~~~~~~~~~~~*/
+
+/*simple decides the coordinate of the move, and also if the move should be ignored or not*/
+void movePlayer(char move, char** map, int rows, int cols, GameInfo* gameInfo, int fd) {
+    int x = -1;
+    int y = -1;
+    
+    switch (move) {
+        case 'w':
+            /*UP*/
+            x = gameInfo->px -1;
+            y = gameInfo->py;
+
+            /*call the helper function*/
+            moveP (map, rows, cols, x, y, gameInfo, fd);          
+            break;
+        case 's':
+            /*DOWN*/
+            x = gameInfo->px +1;
+            y = gameInfo->py;    
+
+            /*call the helper function*/
+            moveP (map, rows, cols, x, y, gameInfo, fd);
+            break;
+        case 'a':
+            /*LEFT*/
+            x = gameInfo->px;
+            y = gameInfo->py-1;      
+
+            /*call the helper function*/
+            moveP (map, rows, cols, x, y, gameInfo, fd);  
+            break;
+        case 'd':
+            /*RIGHT*/
+            x = gameInfo->px;
+            y = gameInfo->py+1;         
+
+            /*call the helper function*/
+            moveP (map, rows, cols, x, y, gameInfo, fd);  
+            break;
+        default : 
+            break;
+        }
+
+}
+
+/*move randomly one step in any availabe 8 directions, move every 2.5 sec*/
+/*helper function for moveS*/
+void moveSnake (char** map, int rows, int cols, GameInfo* gameInfo, int fd) {
+    int x = -1;
+    int y = -1;
+    int validMove = 0; /*keep track of where and when a valid move is selected*/
+    
+    /*get the current coordinates of snake*/
+    int sX = gameInfo->snakex;
+    int sY = gameInfo->snakey;
+
+    /*array of valid moves - indexes 0 - 7 (make array of8 moves, then choose a random index )*/
+    /*2d array of ints , 8 by 2 matrix of cooridiantes */
+    int moves[8][2] = {{sX-1, sY-1}, {sX-1, sY}, {sX-1, sY+1}, {sX, sY+1}, {sX+1, sY+1}, {sX+1, sY}, {sX+1, sY-1}, {sX, sY-1}};
+
+    /*attack check, if any of the 8 valid moves goes to the player, then go there*/
+    int r, c;
+    for (r = 0; r < 8; r++) {
+        if (moves[r][0] == gameInfo->px && moves[r][1] == gameInfo->py) {
+            x = moves[r][0];
+            y = moves[r][1];
+            validMove = 1;
+        }
+    }
+
+    /* if attack check does not select a valid move, then the while loop is entered*/
+    /*now choose a randome index (0 to 7)*/
+    int index;
+    int move[2]; 
+    while (!validMove) {
+        index = randomUCP(0, 7);
+        x = moves[index][0];
+        y = moves[index][1]; 
+        /* flip the flag if a valid move was selected and exit while loop*/
+        /* check if x and y are out of index*/
+        /*also check if we're in any invalid area */
+        if (x >= 0 && x < rows && y >= 0 && y < cols) {
+            /*checks for * # G W*/  
+            if (map[x][y] != '*' && map[x][y] != '#' && map[x][y] != 'G' && map[x][y] != 'W' ) {
+                validMove = 1;
+            }
+        }
+    }
+
+    moveS(map, rows,cols, x, y, gameInfo, fd);
+}
+
+/*move randomly one step in any availabe 4 directions, move every 1 sec*/
+/*gets the exact new coordinates, then passes to helper that actually makes the move*/
+void moveWolf (char** map, int rows, int cols, GameInfo* gameInfo, int fd) {
+    int x = -1;
+    int y = -1;
+    int validMove = 0; /*keep track of whertehr or not a valid move has been selected*/
+    
+    /*get the current coordinates of wolf*/
+    int wX = gameInfo->wolfx;
+    int wY = gameInfo->wolfy;
+
+    /*array of valid moves - indexes 0 - 7 (make array of 8 moves, then choose a random index )*/
+    /*2d array of ints , 8 by 2 matrix of cooridiantes */
+    int moves[4][2] = {{wX-1, wY}, {wX, wY+1}, {wX+1, wY}, {wX, wY-1}};
+
+    /*attack check, if any of the 4 valid moves goes to the player, then go there*/
+    int r, c;
+    for (r = 0; r < 4; r++) {
+        if (moves[r][0] == gameInfo->px && moves[r][1] == gameInfo->py) {
+            x = moves[r][0];
+            y = moves[r][1];
+            validMove = 1;
+        }
+    }
+
+    /*now choose a randome index (0 to 7)*/
+    /*while loop will never be entered if the precious attack check returns a valid move*/
+    int index;
+    int move[2]; 
+    while (!validMove) {
+        index = randomUCP(0, 3);
+        x = moves[index][0];
+        y = moves[index][1]; 
+        /* flip the flag if a valid move was selected and exit while loop*/
+        /* check if x and y are out of index*/
+        /*also check if we're in any invalid area */
+        if (x >= 0 && x < rows && y >= 0 && y < cols) {
+            /*checks for * # G S*/  
+            if (map[x][y] != '*' && map[x][y] != '#' && map[x][y] != 'G' && map[x][y] != '~' ) {
+                validMove = 1;
+            }
+        }
+    }
+    moveW(map, rows,cols, x, y, gameInfo, fd);
 }

@@ -3,6 +3,13 @@
 #include "gameInfo.h"
 #include "newSleep.h"
 
+/*multi proccess includes*/
+#include<sys/wait.h>
+#include<sys/types.h>
+#include<sys/file.h>
+
+/* TODO - remove instances of system() -> this is a lib call, use sys call equivalant*/
+
 int main (int argc, char* argv[]) {
 
     /*set the random seed*/
@@ -32,13 +39,14 @@ int main (int argc, char* argv[]) {
 
     char** map = loadMap(mapFile, rows, cols, &gameInfo); 
 
+
     /*------------------ MAIN GAME LOOP ----------------------------*/
 
     char move;
     system("clear"); /*clear b4 game starts*/
-    while ( gameInfo.state == 0) {
+    while ( getState(mapFile) == 0) {
 
-        system("tput cup 0 0");
+        system("tput cup 0 0"); 
         renderMap(map, rows, cols);
         
         move = getUserMove(); /*get the user input*/
