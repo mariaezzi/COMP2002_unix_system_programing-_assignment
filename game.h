@@ -10,9 +10,6 @@
 
 #define STDIN_FILENO 0
 
-/*function to accept char from the user*/
-char getUserMove(void); 
-
 /*takes the fd of copied map file, returns the current state of the game*/
 int getState (int fd); 
 

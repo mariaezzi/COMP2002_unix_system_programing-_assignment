@@ -2,6 +2,8 @@
 #include "game.h"
 #include "gameInfo.h"
 #include "newSleep.h"
+#include"terminal.h"
+
 
 /*multi proccess includes*/
 #include<sys/wait.h>
@@ -38,6 +40,8 @@ int main (int argc, char* argv[]) {
     close(mapFile); /*job done, copy created, close the fd, since every proccess gets its own fd regardless*/
 
 
+    /*disable buffer - doing only once for cleaner rendering on terminal*/
+    disableBuffer();
 
 
     /* ============================ MULTI PROCCESS IMPLIMENTATION ============================ */
@@ -62,7 +66,7 @@ int main (int argc, char* argv[]) {
             renderMap(map, rows, cols);
             
             while(1) {
-                newSleep(1); /*wait 1 secs every move*/
+                newSleep(0.5); /*wait 1 secs every move*/
                 flock(wolfFd, LOCK_EX); /*lock for other processes*/
                 
                 loadMap(map, wolfFd, rows, cols, &gameInfo);
@@ -100,7 +104,9 @@ int main (int argc, char* argv[]) {
         char move;
 
         while(1) {
+            /* BUG IS HERE - */
             move = getUserMove(); /*get the user input*/
+
             flock(playerFd, LOCK_EX); /*lock for other processes*/
             
             loadMap(map, playerFd, rows, cols, &gameInfo);
@@ -116,13 +122,11 @@ int main (int argc, char* argv[]) {
                     renderMap(map, rows, cols);
                     updateFile(playerFd, map, rows, cols, &gameInfo);
                 }
-
                 flock(playerFd, LOCK_UN); /* release for other processes */
-
-                /*avoid waiting for new key again if game is over*/
-                if (gameInfo.state != 0)
-                    break;
             }
+            /*avoid waiting for new key again if game is over, and dont go into the loop again eitehr*/
+            if (gameInfo.state != 0)
+                break;
         }
 
         freeMap(map, rows, cols);
@@ -137,7 +141,7 @@ int main (int argc, char* argv[]) {
         
 
         while(1) {
-            newSleep(2); /*wait 1 secs every move*/
+            newSleep(1); /*wait 2 secs every move*/
             flock(snakeFd, LOCK_EX); /*lock for other processes*/
             
             loadMap(map, snakeFd, rows, cols, &gameInfo);
@@ -177,6 +181,10 @@ int main (int argc, char* argv[]) {
 
     /*close the copy file at the very end and then */
     close(playerFd);
+
+    /*enable buffer bofore returning - restore orignal terminal*/
+    enableBuffer(); 
+
     return 0;
 }
 
