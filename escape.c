@@ -54,6 +54,7 @@ int main (int argc, char* argv[]) {
 
         int pid_fork2 = fork();
 
+        /* ========================= WOLF CHILD ========================= */
         /*child 3 - my witty wolf - give own copy (array and struct) and start moving every 1 sec*/
         if (pid_fork2 == 0) {
             /*allocate mem, load file data and struct*/
@@ -95,7 +96,7 @@ int main (int argc, char* argv[]) {
         }
 
 
-        /*PARENT PLAYER*/
+        /* ========================= PARENT PLAYER ========================= */
 
         /*allocate mem, load file data and struct - for player */
         playerFd = open("state.txt", O_RDWR);
@@ -104,8 +105,7 @@ int main (int argc, char* argv[]) {
         char move;
 
         while(1) {
-            /* BUG IS HERE - */
-            move = getUserMove(); /*get the user input*/
+            move = getUserMove(); /*get the user input - initial function changed to deal with lose condiion lag*/
 
             flock(playerFd, LOCK_EX); /*lock for other processes*/
             
@@ -132,6 +132,7 @@ int main (int argc, char* argv[]) {
         freeMap(map, rows, cols);
     }
 
+    /* ========================= SNAKE CHILD ========================= */
     /*child 2 - my sneaky snake, give it its own copy (array and struct) and start moving it, every 2 secs*/
     else if (pid == 0) { 
         /*allocate mem, load file data and struct*/
@@ -169,6 +170,9 @@ int main (int argc, char* argv[]) {
         exit(0);
     }
 
+
+
+    /* =================================== CLEAN UP ======================================== */
 
     /*wait for both child proceses to finish before checking condition*/
     wait(NULL);
