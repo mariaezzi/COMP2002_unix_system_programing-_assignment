@@ -23,6 +23,6 @@ int* getRowsAndCols(int fd); /*takes a fd, returns an int* of size 2 with rows a
 int copyFile (char* file); /*takes fd, creates a copy, return the copied fd*/
 void loadMap(char** map, int fd, int rows, int cols, GameInfo* gameInfo); /*takes an empty matrix, a fd, reads map contents, returns 2d array representaion*/
 int renderMap (char** map, int rows, int cols); /*takes a 2d array map, renders it out to the terminal*/
-int freeMap (char** map, int rows, int cols);  /*takes a 2d array map, and then frees it */
+int freeMap (char** map, int rows);  /*takes a 2d array map, and then frees it */
 
 #endif

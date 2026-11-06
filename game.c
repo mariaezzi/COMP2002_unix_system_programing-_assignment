@@ -98,7 +98,7 @@ int updateFile (int fd, char** map, int rows, int cols, GameInfo* gameInfo) {
 */
 
 /*helper function for movePlayer, takes the new positions and makes apropriate changes*/
-int moveP (char** map, int rows, int cols, int x, int y, GameInfo* gameInfo, int fd) {
+int moveP (char** map, int rows, int cols, int x, int y, GameInfo* gameInfo) {
     int res = 0;
 
     /* check if x and y are within matrix*/
@@ -131,7 +131,7 @@ int moveP (char** map, int rows, int cols, int x, int y, GameInfo* gameInfo, int
 }
 
 /*takes new x and y coordinates for snake, and updtaes relevant info if valid move*/
-void moveS (char** map, int rows, int cols, int x, int y, GameInfo* gameInfo, int fd) {
+void moveS (char** map, int x, int y, GameInfo* gameInfo) {
 
     /*check if player has lost*/
     if (map[x][y] == 'P') /*overlappiing with P? LOSE */ 
@@ -149,7 +149,7 @@ void moveS (char** map, int rows, int cols, int x, int y, GameInfo* gameInfo, in
 }
 
 /*takes new x and y coordinates for Wolf, and updtaes relevant info if valid move*/
-void moveW (char** map, int rows, int cols, int x, int y, GameInfo* gameInfo, int fd) {
+void moveW (char** map, int x, int y, GameInfo* gameInfo) {
     /*check if player has lost*/
     if (map[x][y] == 'P') /*overlappiing with P? LOSE */ 
         gameInfo->state = 2;  
@@ -169,7 +169,7 @@ void moveW (char** map, int rows, int cols, int x, int y, GameInfo* gameInfo, in
 /*~~~~~~~~~~~~~~~~~~~~~~ Returns coordinates of valid move (doesnt make changes tho) ~~~~~~~~~~~~~~~~~~~~~~*/
 
 /*simple decides the coordinate of the move, and also if the move should be ignored or not*/
-int movePlayer(char move, char** map, int rows, int cols, GameInfo* gameInfo, int fd) {
+int movePlayer(char move, char** map, int rows, int cols, GameInfo* gameInfo) {
     int x = -1;
     int y = -1;
     int res = 0;
@@ -181,7 +181,7 @@ int movePlayer(char move, char** map, int rows, int cols, GameInfo* gameInfo, in
             y = gameInfo->py;
 
             /*call the helper function*/
-            res = moveP (map, rows, cols, x, y, gameInfo, fd);          
+            res = moveP (map, rows, cols, x, y, gameInfo);          
             break;
         case 's':
             /*DOWN*/
@@ -189,7 +189,7 @@ int movePlayer(char move, char** map, int rows, int cols, GameInfo* gameInfo, in
             y = gameInfo->py;    
 
             /*call the helper function*/
-            res = moveP (map, rows, cols, x, y, gameInfo, fd);
+            res = moveP (map, rows, cols, x, y, gameInfo);
             break;
         case 'a':
             /*LEFT*/
@@ -197,7 +197,7 @@ int movePlayer(char move, char** map, int rows, int cols, GameInfo* gameInfo, in
             y = gameInfo->py-1;      
 
             /*call the helper function*/
-            res = moveP (map, rows, cols, x, y, gameInfo, fd);  
+            res = moveP (map, rows, cols, x, y, gameInfo);  
             break;
         case 'd':
             /*RIGHT*/
@@ -205,7 +205,7 @@ int movePlayer(char move, char** map, int rows, int cols, GameInfo* gameInfo, in
             y = gameInfo->py+1;         
 
             /*call the helper function*/
-            res = moveP (map, rows, cols, x, y, gameInfo, fd);  
+            res = moveP (map, rows, cols, x, y, gameInfo);  
             break;
         default : 
             break;
@@ -217,7 +217,7 @@ int movePlayer(char move, char** map, int rows, int cols, GameInfo* gameInfo, in
 
 /*move randomly one step in any availabe 8 directions, move every 2.5 sec*/
 /*helper function for moveS*/
-void moveSnake (char** map, int rows, int cols, GameInfo* gameInfo, int fd) {
+void moveSnake (char** map, int rows, int cols, GameInfo* gameInfo) {
     int x = -1;
     int y = -1;
     int validMove = 0; /*keep track of where and when a valid move is selected*/
@@ -231,7 +231,7 @@ void moveSnake (char** map, int rows, int cols, GameInfo* gameInfo, int fd) {
     int moves[8][2] = {{sX-1, sY-1}, {sX-1, sY}, {sX-1, sY+1}, {sX, sY+1}, {sX+1, sY+1}, {sX+1, sY}, {sX+1, sY-1}, {sX, sY-1}};
 
     /*attack check, if any of the 8 valid moves goes to the player, then go there*/
-    int r, c;
+    int r;
     for (r = 0; r < 8; r++) {
         if (moves[r][0] == gameInfo->px && moves[r][1] == gameInfo->py) {
             x = moves[r][0];
@@ -243,7 +243,6 @@ void moveSnake (char** map, int rows, int cols, GameInfo* gameInfo, int fd) {
     /* if attack check does not select a valid move, then the while loop is entered*/
     /*now choose a randome index (0 to 7)*/
     int index;
-    int move[2]; 
     while (!validMove) {
         index = randomUCP(0, 7);
         x = moves[index][0];
@@ -259,12 +258,12 @@ void moveSnake (char** map, int rows, int cols, GameInfo* gameInfo, int fd) {
         }
     }
 
-    moveS(map, rows,cols, x, y, gameInfo, fd);
+    moveS(map, x, y, gameInfo);
 }
 
 /*move randomly one step in any availabe 4 directions, move every 1 sec*/
 /*gets the exact new coordinates, then passes to helper that actually makes the move*/
-void moveWolf (char** map, int rows, int cols, GameInfo* gameInfo, int fd) {
+void moveWolf (char** map, int rows, int cols, GameInfo* gameInfo) {
     int x = -1;
     int y = -1;
     int validMove = 0; /*keep track of whertehr or not a valid move has been selected*/
@@ -278,7 +277,7 @@ void moveWolf (char** map, int rows, int cols, GameInfo* gameInfo, int fd) {
     int moves[4][2] = {{wX-1, wY}, {wX, wY+1}, {wX+1, wY}, {wX, wY-1}};
 
     /*attack check, if any of the 4 valid moves goes to the player, then go there*/
-    int r, c;
+    int r;
     for (r = 0; r < 4; r++) {
         if (moves[r][0] == gameInfo->px && moves[r][1] == gameInfo->py) {
             x = moves[r][0];
@@ -290,7 +289,6 @@ void moveWolf (char** map, int rows, int cols, GameInfo* gameInfo, int fd) {
     /*now choose a randome index (0 to 7)*/
     /*while loop will never be entered if the precious attack check returns a valid move*/
     int index;
-    int move[2]; 
     while (!validMove) {
         index = randomUCP(0, 3);
         x = moves[index][0];
@@ -305,5 +303,5 @@ void moveWolf (char** map, int rows, int cols, GameInfo* gameInfo, int fd) {
             }
         }
     }
-    moveW(map, rows,cols, x, y, gameInfo, fd);
+    moveW(map, x, y, gameInfo);
 }

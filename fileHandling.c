@@ -221,7 +221,7 @@ int renderMap (char** map, int rows, int cols) {
 }
 
 /*takes a 2d array map, and then frees it */
-int freeMap (char** map, int rows, int cols){
+int freeMap (char** map, int rows){
     
     if (map == NULL) {
         write(2, "freeMap: map is NULL\n", 21);

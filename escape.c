@@ -4,7 +4,6 @@
 #include "newSleep.h"
 #include"terminal.h"
 
-
 /*multi proccess includes*/
 #include<sys/wait.h>
 #include<sys/types.h>
@@ -12,7 +11,6 @@
 
 /*initialize data needed for each process*/
 char** initializeProcess(int fd, int rows, int cols, GameInfo* gameInfo);
-
 
 int main (int argc, char* argv[]) {
 
@@ -44,17 +42,28 @@ int main (int argc, char* argv[]) {
     disableBuffer();
 
 
-    /* ============================ MULTI PROCCESS IMPLIMENTATION ============================ */
+    /* ======================================================================================================= */
+    /* ====================================== MULTI PROCCESS IMPLIMENTATION ================================== */
+    /* ======================================================================================================= */
 
+    int pid, pid_fork2 = -1;
     int playerFd; /*for parent*/
-    int pid = fork(); /*parent and first child*/
+    pid = fork(); /*parent and first child*/
+
+    /*check for failure and handle exit*/
+    if (pid < 0) 
+        exit(0);
+
     
     /*intial fork handling, entering parent process now*/
     if (pid > 0) {
 
-        int pid_fork2 = fork();
-
-        /* ========================= WOLF CHILD ========================= */
+        pid_fork2 = fork(); /*to create the second child*/
+        /*quicky check for failure and exit*/
+        if (pid_fork2 < 0)
+            exit(0);
+        
+        /* ========================================== WOLF CHILD ========================================== */
         /*child 3 - my witty wolf - give own copy (array and struct) and start moving every 1 sec*/
         if (pid_fork2 == 0) {
             /*allocate mem, load file data and struct*/
@@ -64,8 +73,7 @@ int main (int argc, char* argv[]) {
             
             while(1) {
                 newSleep(1); /*wait 1 secs every move*/
-                flock(wolfFd, LOCK_EX); /*lock for other processes*/
-                
+                flock(wolfFd, LOCK_EX); /*lock for other processes*/   
                 loadMap(map, wolfFd, rows, cols, &gameInfo);
                 if (getState(wolfFd) != 0) {
                     flock(wolfFd, LOCK_UN); /* release for other processes */
@@ -74,7 +82,7 @@ int main (int argc, char* argv[]) {
                 else {
                     /*make move and update*/
                     clear_terminal();
-                    moveWolf(map, rows, cols, &gameInfo, wolfFd);
+                    moveWolf(map, rows, cols, &gameInfo);
                     renderMap(map, rows, cols);
                     updateFile(wolfFd, map, rows, cols, &gameInfo);
                     
@@ -84,15 +92,14 @@ int main (int argc, char* argv[]) {
                     if (gameInfo.state != 0)
                         break;
                 }
-            }
-            
-            freeMap(map, rows, cols);
+            }    
+            freeMap(map, rows);
             close(wolfFd);
             exit(0);
         }
 
 
-        /* ========================= PARENT PLAYER ========================= */
+        /* ========================================= PARENT PLAYER ========================================= */
 
         /*allocate mem, load file data and struct - for player */
         playerFd = open("state.txt", O_RDWR);
@@ -106,9 +113,7 @@ int main (int argc, char* argv[]) {
 
         while(1) {
             move = getUserMove(); /*get the user input - initial function changed to deal with lose condiion lag*/
-
             flock(playerFd, LOCK_EX); /*lock for other processes*/
-            
             loadMap(map, playerFd, rows, cols, &gameInfo);
             if (getState(playerFd) != 0) {
                 flock(playerFd, LOCK_UN); /* release for other processes */
@@ -116,7 +121,7 @@ int main (int argc, char* argv[]) {
             }
             else {
                 /*make move and update*/
-                int moved = movePlayer(move, map, rows, cols, &gameInfo, playerFd);
+                int moved = movePlayer(move, map, rows, cols, &gameInfo);
                 if (moved) {
                     clear_terminal();
                     renderMap(map, rows, cols);
@@ -128,11 +133,10 @@ int main (int argc, char* argv[]) {
             if (gameInfo.state != 0)
                 break;
         }
-
-        freeMap(map, rows, cols);
+        freeMap(map, rows);
     }
 
-    /* ========================= SNAKE CHILD ========================= */
+    /* ========================================== SNAKE CHILD ========================================== */
     /*child 2 - my sneaky snake, give it its own copy (array and struct) and start moving it, every 2 secs*/
     else if (pid == 0) { 
         /*allocate mem, load file data and struct*/
@@ -152,7 +156,7 @@ int main (int argc, char* argv[]) {
             else {
                 /*make move and update*/
                 clear_terminal();
-                moveSnake(map, rows, cols, &gameInfo, snakeFd);
+                moveSnake(map, rows, cols, &gameInfo);
                 renderMap(map, rows, cols);
                 updateFile(snakeFd, map, rows, cols, &gameInfo);
                 
@@ -164,30 +168,29 @@ int main (int argc, char* argv[]) {
             }
         }
 
-        freeMap(map, rows, cols);
+        freeMap(map, rows);
         close(snakeFd);
         exit(0);
     }
 
-
-
-    /* =================================== CLEAN UP ======================================== */
+    /* ========================================== CLEAN UP ========================================== */
 
     /*wait for both child proceses to finish before checking condition*/
     wait(NULL);
     wait(NULL);
 
-    if (getState(playerFd) == 1) 
-        write(1, "You win!\n", 9);
-    else 
-        write(1, "HAHAHA loser\n", 13);
-
-    /*close the copy file at the very end and then */
-    close(playerFd);
+    /*do the following chcek and clean up only if the forks were succesfull*/
+    if (!(pid < 0 && pid_fork2 < 0)) {
+        if (getState(playerFd) == 1) 
+            write(1, "You win!\n", 9);
+        else 
+            write(1, "HAHAHA loser\n", 13);
+        /*close the copy file at the very end and then */
+        close(playerFd);
+    }
 
     /*enable buffer bofore returning - restore orignal terminal*/
     enableBuffer(); 
-
     return 0;
 }
 
