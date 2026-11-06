@@ -17,9 +17,7 @@ int getState (int fd);
 int updateFile (int fd, char** map, int rows, int cols, GameInfo* gameInfo);
 
 
-
-/* ~~~~~~~~~~~~~~~ changes file and struct (critical section) ~~~~~~~~~~~~~~~*/
-
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ helpers ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /*helper function for movePlayer, takes the new positions and makes apropriate changes*/
 int moveP (char** map, int rows, int cols, int x, int y, GameInfo* gameInfo);
 
@@ -34,7 +32,7 @@ void moveW (char** map, int x, int y, GameInfo* gameInfo);
 /*simple decides the coordinate of the move, and also if the move should be ignored or not*/
 int movePlayer(char move, char** map, int rows, int cols, GameInfo* gameInfo);
 
-/*move randomly one step in any availabe 8 directions, move every 2.5 sec*/
+/*move randomly one step in any availabe 8 directions, move every 2 sec*/
 /*helper function for moveS*/
 void moveSnake (char** map, int rows, int cols, GameInfo* gameInfo);
 

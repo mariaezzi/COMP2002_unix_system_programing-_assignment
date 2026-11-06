@@ -13,7 +13,6 @@
 char** initializeProcess(int fd, int rows, int cols, GameInfo* gameInfo);
 
 int main (int argc, char* argv[]) {
-
     /*set the random seed*/
     initRandom();
 
@@ -37,10 +36,8 @@ int main (int argc, char* argv[]) {
     free(res); /*free the memory allocated for res*/
     close(mapFile); /*job done, copy created, close the fd, since every proccess gets its own fd regardless*/
 
-
     /*disable buffer - doing only once for cleaner rendering on terminal*/
     disableBuffer();
-
 
     /* ======================================================================================================= */
     /* ====================================== MULTI PROCCESS IMPLIMENTATION ================================== */
@@ -53,7 +50,6 @@ int main (int argc, char* argv[]) {
     /*check for failure and handle exit*/
     if (pid < 0) 
         exit(0);
-
     
     /*intial fork handling, entering parent process now*/
     if (pid > 0) {
@@ -97,7 +93,6 @@ int main (int argc, char* argv[]) {
             close(wolfFd);
             exit(0);
         }
-
 
         /* ========================================= PARENT PLAYER ========================================= */
 
@@ -194,17 +189,15 @@ int main (int argc, char* argv[]) {
     return 0;
 }
 
-
 char** initializeProcess(int fd, int rows, int cols, GameInfo* gameInfo) {
     /*initialize 2d array*/
     char** map = (char**)malloc(rows * sizeof(char*));
-    if (map == NULL) {
+    if (map == NULL) 
         write(2, "Map Memory allocation failed\n", 29);
-    }
+    
     int i;
-    for (i = 0; i < rows; i ++) {
+    for (i = 0; i < rows; i ++) 
         map[i] = (char*)malloc(cols * sizeof(char));
-    }
     
     /*load gama data into array and struct*/
     loadMap(map , fd, rows, cols, gameInfo); 

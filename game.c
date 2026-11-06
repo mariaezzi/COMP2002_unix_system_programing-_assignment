@@ -1,6 +1,5 @@
 #include "game.h"
 
-
 /*takes the fd of copied map file, returns the current state of the game*/
 int getState (int fd) {
     char state; 
@@ -11,7 +10,6 @@ int getState (int fd) {
     return singleDigitCharToInt(state); /*convert the string just read into an int and return it*/
 }
 
-
 /*takes a map array, new state, and open fd*/
 /*writes contents of array to fd*/
 /*updtaes the file, and state*/
@@ -21,7 +19,7 @@ int updateFile (int fd, char** map, int rows, int cols, GameInfo* gameInfo) {
         return -1;
     }
 
-    lseek(fd, 0, SEEK_SET);
+    lseek(fd, 0, SEEK_SET); /*ALWAYS start at start, dont trust where it may be left off before*/
 
     /*1 - write the current state of the game*/
     int s = gameInfo->state;
@@ -86,16 +84,7 @@ int updateFile (int fd, char** map, int rows, int cols, GameInfo* gameInfo) {
     }
 
     return 0; /*success*/
-
 }
-
-
-/* ~~~~~~~~~~~~~~~ changes file and struct (critical section) ~~~~~~~~~~~~~~~*/
-/* ~~~~~~~~~~~~~~~ only the following 3 function call updatefile 
-   ~~~~~~~~~~~~~~~ moveP moveS moveW are not called direcly in the main function 
-   ~~~~~~~~~~~~~~~ they are called in direcly through movePlayer moveSnake moveWolf
-   ~~~~~~~~~~~~~~~ regardless, these are the only 3 functions that touch state.txt
-*/
 
 /*helper function for movePlayer, takes the new positions and makes apropriate changes*/
 int moveP (char** map, int rows, int cols, int x, int y, GameInfo* gameInfo) {
@@ -118,21 +107,17 @@ int moveP (char** map, int rows, int cols, int x, int y, GameInfo* gameInfo) {
             res = 1;
 
             /*once a VALID move is made, check the following*/
-
             /*check for goal*/
-            if (x == gameInfo->goalx && y == gameInfo->goaly) {
+            if (x == gameInfo->goalx && y == gameInfo->goaly) 
                 gameInfo->state = 1;
-            }
         } 
     }
 
-    return res;
-
+    return res; /*return res, was a move made or not?? avoid re renderign the map for no reason*/
 }
 
 /*takes new x and y coordinates for snake, and updtaes relevant info if valid move*/
 void moveS (char** map, int x, int y, GameInfo* gameInfo) {
-
     /*check if player has lost*/
     if (map[x][y] == 'P') /*overlappiing with P? LOSE */ 
         gameInfo->state = 2;  
@@ -145,7 +130,6 @@ void moveS (char** map, int x, int y, GameInfo* gameInfo) {
     gameInfo->snakey = y;
 
     map[x][y] = '~';
-    
 }
 
 /*takes new x and y coordinates for Wolf, and updtaes relevant info if valid move*/
@@ -162,7 +146,6 @@ void moveW (char** map, int x, int y, GameInfo* gameInfo) {
     gameInfo->wolfy = y;
 
     map[x][y] = 'W';   
-
 }
 
 
@@ -212,10 +195,9 @@ int movePlayer(char move, char** map, int rows, int cols, GameInfo* gameInfo) {
         }
 
         return res;
-
 }
 
-/*move randomly one step in any availabe 8 directions, move every 2.5 sec*/
+/*move randomly one step in any availabe 8 directions, move every 2 sec*/
 /*helper function for moveS*/
 void moveSnake (char** map, int rows, int cols, GameInfo* gameInfo) {
     int x = -1;

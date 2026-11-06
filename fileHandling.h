@@ -16,7 +16,7 @@ char* twoDigitIntToChar(int num); /*takes a 2 digit int, returns a char* represe
 int twoDigitCharToInt(char* str); /*takes a 2 digit char*, returns the int representation of it*/
 void setWhiteBackground();
 void resetBackground();
-void clear_terminal(void);
+void clear_terminal();
 
 /*--------------------------------- MAIN OPERATIONS -----------------------------------*/
 int* getRowsAndCols(int fd); /*takes a fd, returns an int* of size 2 with rows and cols*/

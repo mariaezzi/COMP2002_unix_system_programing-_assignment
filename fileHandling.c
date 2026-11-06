@@ -7,7 +7,6 @@ int stringLen(char* str) {
     int len = 0;
     int i;
     for (i = 0; str[i] != '\0' ; i++) { len++; }
-
     return len;
 }
 
@@ -16,7 +15,7 @@ char singleDigitIntToChar(int num) {
     /*trick only works for a single digit numbers*/
     /*take the decimal value of 0 (which is 48), and add the value of the num (eg 3) to it*/
     /*which is 51*/
-    /*result is ascii prowsable value of the initial number*/
+    /*result is ascii printable value of the initial number*/
     return '0' + num;
 }
 /*converts a single digit char to an int*/
@@ -59,7 +58,7 @@ void resetBackground() {
     write(1, "\033[0m", 4); /* ANSI escape code to reset background */
 }
 
-void clear_terminal(void) {
+void clear_terminal() {
     // \033[2J clears the entire screen
     // \033[H moves the cursor back to the top-left corner (home)
     write(STDOUT_FILENO, "\033[2J\033[H", 7);
@@ -94,12 +93,10 @@ int* getRowsAndCols(int fd) {
     result[1] = c;
 
     return result; /*return the rows and cols as an int array*/
-
 }
 
 /*takes fd, creates a copy, return the copied fd*/
 int copyFile (char* file) {
-
     int fd_orignal = open(file, O_RDONLY);
     if (fd_orignal < 0) {
         write(2, "open map.txt failed\n", 20 );
@@ -129,7 +126,6 @@ int copyFile (char* file) {
 
 /*takes a fd, reads map contents, returns 2d array representaion*/
 void loadMap(char** map, int fd, int rows, int cols, GameInfo* gameInfo) {
-
     char ch; /*used to read in characters from the file*/
 
     char symbols[6] = {' ', '#', 'P', 'G', '~', 'W'};
@@ -179,8 +175,6 @@ void loadMap(char** map, int fd, int rows, int cols, GameInfo* gameInfo) {
             }
         }
     }
-    
-
 }
 
 /*takes a 2d array map, renders it out to the terminal*/
@@ -222,16 +216,15 @@ int renderMap (char** map, int rows, int cols) {
 
 /*takes a 2d array map, and then frees it */
 int freeMap (char** map, int rows){
-    
     if (map == NULL) {
         write(2, "freeMap: map is NULL\n", 21);
         return -1;
     }
 
     int i;
-    for (i = 0; i < rows; i ++) {
+    for (i = 0; i < rows; i ++) 
         free(map[i]);
-    }
+
     free(map);
 
     return 0; /*success*/
