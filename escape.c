@@ -49,7 +49,7 @@ int main (int argc, char* argv[]) {
     int playerFd; /*for parent*/
     int pid = fork(); /*parent and first child*/
     
-    /*parent - my poor player - give own copy (array and struct) and start moving*/
+    /*intial fork handling, entering parent process now*/
     if (pid > 0) {
 
         int pid_fork2 = fork();
@@ -62,12 +62,8 @@ int main (int argc, char* argv[]) {
             GameInfo gameInfo;
             char** map = initializeProcess(wolfFd, rows, cols, &gameInfo);
             
-            /*doing this out side of loop only for parent proccess to avoid race conditions*/
-            clear_terminal();
-            renderMap(map, rows, cols);
-            
             while(1) {
-                newSleep(0.5); /*wait 1 secs every move*/
+                newSleep(1); /*wait 1 secs every move*/
                 flock(wolfFd, LOCK_EX); /*lock for other processes*/
                 
                 loadMap(map, wolfFd, rows, cols, &gameInfo);
@@ -103,6 +99,10 @@ int main (int argc, char* argv[]) {
         GameInfo gameInfo;
         char** map = initializeProcess(playerFd, rows, cols, &gameInfo);
         char move;
+
+        /*doing this out side of loop only for parent proccess to avoid race conditions*/
+        clear_terminal();
+        renderMap(map, rows, cols);
 
         while(1) {
             move = getUserMove(); /*get the user input - initial function changed to deal with lose condiion lag*/
@@ -140,9 +140,8 @@ int main (int argc, char* argv[]) {
         GameInfo gameInfo;
         char** map = initializeProcess(snakeFd, rows, cols, &gameInfo);
         
-
         while(1) {
-            newSleep(1); /*wait 2 secs every move*/
+            newSleep(2); /*wait 2 secs every move*/
             flock(snakeFd, LOCK_EX); /*lock for other processes*/
             
             loadMap(map, snakeFd, rows, cols, &gameInfo);

@@ -103,17 +103,9 @@ int moveP (char** map, int rows, int cols, int x, int y, GameInfo* gameInfo, int
 
     /* check if x and y are within matrix*/
     if (x >= 0 && x < rows && y >= 0 && y < cols ) {
-
-        /*might remove the 2 lose conditions in multiproccess, idk tho*/
-
-        if (map[x][y] == '~') /*overlappiing with snake? LOSE */ 
-            gameInfo->state = 2;  /*incase player is dumb and walks right into snake*/
-
-        if (map[x][y] == 'W') /*overlappiing with wolf? LOSE */ 
-            gameInfo->state = 2;  /*incase player is dumb and walks right into wolf*/
         
         /*checks for * # */  
-        if (map[x][y] != '*' && map[x][y] != '#' ) {
+        if (map[x][y] != '*' && map[x][y] != '#' && map[x][y] != '~' &&  map[x][y] != 'W' ) {
 
             /*clear old spot of p*/
             map[gameInfo->px][gameInfo->py] = ' ';

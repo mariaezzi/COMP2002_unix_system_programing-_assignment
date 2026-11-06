@@ -26,7 +26,7 @@ void enableBuffer(){
 char getUserMove(void) {
     char move;
     int res = read(STDIN_FILENO, &move, 1); /*read a single char from stdin*/
-    if (res == 0) {
+    if (res <= 0) {
         return '\0';
     }
     return move;
