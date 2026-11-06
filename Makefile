@@ -1,6 +1,5 @@
 CC = gcc
-#CFLAGS = -Wall -Wextra -ansi -pedantic -g
-CFLAGS = -Wall -Wextra -g
+CFLAGS = -Wall -Wextra -std=c99 -g
 OBJ = escape.o fileHandling.o game.o newSleep.o random.o terminal.o
 EXEC = escape
 

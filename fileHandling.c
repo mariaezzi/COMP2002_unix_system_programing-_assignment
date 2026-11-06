@@ -27,7 +27,7 @@ int singleDigitCharToInt(char ch) {
 char* twoDigitIntToChar(int num) {
     char *result = malloc(3); /*allocate memory for 2 digits + null terminator*/
     if (result == NULL) {
-        write(2, "Memory allocation failed\n", 26);
+        write(2, "Memory allocation failed\n", 25);
         return NULL;
     }
     
@@ -184,7 +184,7 @@ int renderMap (char** map, int rows, int cols) {
 
     /*error checking*/
     if (map == NULL) {
-        write(2, "renderMap: map is NULL\n", 24);
+        write(2, "renderMap: map is NULL\n", 23);
         return -1;
     }
 
