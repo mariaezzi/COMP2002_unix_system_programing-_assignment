@@ -57,6 +57,7 @@ int main (int argc, char* argv[]) {
             GameInfo gameInfo;
             char** map = initializeProcess(wolfFd, rows, cols, &gameInfo);
             
+            /*doing this out side of loop only for parent proccess to avoid race conditions*/
             clear_terminal();
             renderMap(map, rows, cols);
             
@@ -97,8 +98,7 @@ int main (int argc, char* argv[]) {
         GameInfo gameInfo;
         char** map = initializeProcess(playerFd, rows, cols, &gameInfo);
         char move;
-        // clear_terminal();
-        // renderMap(map, rows, cols);
+
         while(1) {
             move = getUserMove(); /*get the user input*/
             flock(playerFd, LOCK_EX); /*lock for other processes*/
@@ -135,8 +135,6 @@ int main (int argc, char* argv[]) {
         GameInfo gameInfo;
         char** map = initializeProcess(snakeFd, rows, cols, &gameInfo);
         
-        // clear_terminal();
-        // renderMap(map, rows, cols);
 
         while(1) {
             newSleep(2); /*wait 1 secs every move*/
